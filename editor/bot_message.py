@@ -137,7 +137,7 @@ class ButtonsMessage(Message):
 
     def add_next(self, next_message, requiered_button):
         def transition(callback_data):
-            if callback_data == requiered_button.callback_data:
+            if callback_data == requiered_button.callback_data and requiered_button in self.content:
                 # удаляем с панели кнопку, на которую нажали
                 del self.content[self.content.index(requiered_button)]
                 return next_message
@@ -180,9 +180,10 @@ def get_sample_script():  # возвращает пример сценария
 
     mes2 = TextMessage('Ну что вы, нет конечно')
     mes3 = TextMessage('Так только в мультиках бывает 😊')
-    # mes4 = GifMessage('success.gif')  # не отправляется
+    mes4 = GifMessage('gif.gif')  # не отправляется
+    # mes4 = GifMessage('hands_cut.mp4')
     # mes4 = GifMessage('face.mp4')  # долго отправляется
-    mes4 = TextMessage('Всё.')
+    # mes4 = TextMessage('Всё.')
     mes5 = DocMessage('док.docx')
 
     mes1.add_next(next_message=mes3, requiered_button=pink_btn)
@@ -194,3 +195,6 @@ def get_sample_script():  # возвращает пример сценария
     mes5.add_next(next_message=mes1)
 
     return mes1
+
+
+# TODO: функция для создания квадратных видео 240х240
