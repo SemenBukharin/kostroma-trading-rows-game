@@ -1,6 +1,7 @@
 import telebot
 from telebot import types
 from bot_message import *
+from config import TOKEN
 
 
 class Bot:
@@ -130,4 +131,4 @@ class Bot:
         pass
 
 
-bot = Bot('5233900254:AAEpFyqr0LY5PmvLAvY0GK9jJlgyDOYcAMA', get_sample_script())
+bot = Bot(TOKEN, get_sample_script())
