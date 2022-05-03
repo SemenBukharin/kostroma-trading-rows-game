@@ -62,25 +62,25 @@ class Message(ABC):
 class TextMessage(Message):
     """Текстовое сообщение."""
     def __init__(self, text):
-        Message.__init__(self, text)
+        super().__init__(self, text)
 
 
 class ImageMessage(Message):
     """Сообщение с картинкой."""
     def __init__(self, file_path):
-        Message.__init__(self, open(file_path, 'rb'))
+        super().__init__(self, open(file_path, 'rb'))
 
 
 class VideoMessage(Message):
     """Сообщение с видео."""
     def __init__(self, file_path):
-        Message.__init__(self, open(file_path, 'rb'))
+        super().__init__(self, open(file_path, 'rb'))
 
 
 class VoiceMessage(Message):  # должен быть формат ogg
     """Голосовое сообщение."""
     def __init__(self, file_path):
-        Message.__init__(self, open(file_path, 'rb'))
+        super().__init__(self, open(file_path, 'rb'))
         self.text = self.get_text()
 
     def get_text(self):
@@ -91,13 +91,13 @@ class VoiceMessage(Message):  # должен быть формат ogg
 class GifMessage(Message):
     """Сообщение с gif-анимацией."""
     def __init__(self, file_path):
-        Message.__init__(self, open(file_path, 'rb'))
+        super().__init__(self, open(file_path, 'rb'))
 
 
 class ModelMessage(Message):
     """Сообщение со ссылкой на страницу с 3D-моделью."""
     def __init__(self, file_path):
-        Message.__init__(self, self.get_html_markup(file_path))
+        super().__init__(self, self.get_html_markup(file_path))
 
     def get_html_markup(self, file_path):
         """Возвращает разметку html-страницы с 3D-моделью."""
@@ -108,19 +108,19 @@ class DocMessage(Message):
     """Сообщение с прикреплённым документом (произвольным файлом)."""
     def __init__(self, file_path):
         # TODO: файл должен быть не пустым - обработать
-        Message.__init__(self, open(file_path, 'rb'))
+        super().__init__(self, open(file_path, 'rb'))
 
 
 class AudioMessage(Message):
     """Сообщение с аудиозаписью."""
     def __init__(self, file_path):
-        Message.__init__(self, open(file_path, 'rb'))
+        super().__init__(self, open(file_path, 'rb'))
 
 
 class StickerMessage(Message):
     """Сообщение с картинкой-стикером."""
     def __init__(self, file_path):
-        Message.__init__(self, open(file_path, 'rb'))
+        super().__init__(self, open(file_path, 'rb'))
 
 
 class ButtonsMessage(Message):
@@ -132,7 +132,7 @@ class ButtonsMessage(Message):
         buttons - массив кнопок Button
         caption - текстовая подпись к сообщению
         """
-        Message.__init__(self, buttons)
+        super().__init__(self, buttons)
         self.caption = caption
 
     def add_next(self, next_message, requiered_button):
@@ -168,7 +168,7 @@ class GroupMessage(Message):
         Параметры:
         messages - сообщения Message, входящие в состав группы.
         """
-        Message.__init__(self, messages)
+        super().__init__(self, messages)
 
 
 def get_sample_script():  # возвращает пример сценария
