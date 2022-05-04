@@ -1,8 +1,49 @@
 import wx  # pip install -U --pre -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython
+import wx.stc
+import codecs
+
+
+class Editor(wx.stc.StyledTextCtrl):
+    """Класс текстового поля редактора."""
+    def __init__ (self, parent, id = wx.ID_ANY, \
+            pos = wx.DefaultPosition, \
+            size = wx.DefaultSize,\
+            style = 0,\
+            name = "editor"):
+        wx.stc.StyledTextCtrl.__init__ (self, parent, id, pos, size, style, name)
+
+        # print(self.SetMarginWidth.__doc__)
+        self.SetMarginWidth(1, 40)
+        self.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
+
+        # Создаем кодировщик один раз в конструкторе,
+        # чтобы не создавать его при каждой необходимости
+        self.encoder = codecs.getencoder("utf-8")
+
+        # Стиль по умолчанию будет 14-ым шрифтом
+        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT, "size:%d" % 14)
+
+        self.Bind(wx.stc.EVT_STC_UPDATEUI, self.onPosChange)
+
+    def onPosChange (self, event):
+        # Получим текущую позицию каретки в байтах
+        pos = self.GetCurrentPos()
+        text_left = self.GetTextRange(0, pos)
+        self.GetParent().GetParent().GetParent().SetTitle(str (len (text_left) ) )
+
+    def calcByteLen(self, text):
+        """Посчитать длину строки в байтах, а не в символах"""
+        return len(self.encoder(text)[0])
+
+    def calcBytePos (self, text, pos):
+        """Преобразовать позицию в символах в позицию в байтах"""
+        return len(self.encoder (text[: pos] )[0] )
+
 
 class EditorFrame(wx.Frame):
+    """Класс окна редактора."""
     def __init__(self, parent, title):
-        super().__init__(parent, title=title)
+        super().__init__(parent, title=title, style = wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE)
         # TODO: иконка
         # TODO: отступы меню
         # иконки меню
@@ -46,9 +87,10 @@ class EditorFrame(wx.Frame):
         sidebar_bs.Add(res_p, wx.ID_ANY, flag=wx.EXPAND | wx.ALL, border=5)
         sidebar_p.SetSizer(sidebar_bs)
 
-        edit_tc = wx.TextCtrl(edit_p, style=wx.TE_MULTILINE)
+        editor = Editor(edit_p)
+        # edit_tc = wx.TextCtrl(edit_p, style=wx.TE_MULTILINE)
         edit_bs = wx.BoxSizer()
-        edit_bs.Add(edit_tc, wx.ID_ANY, flag=wx.EXPAND)
+        edit_bs.Add(editor, wx.ID_ANY, flag=wx.EXPAND)
         edit_p.SetSizer(edit_bs)
         # scenes_header_p = wx.Panel(sidebar_p)
         # scenes_header_st = wx.StaticText(scenes_header_p, label='Сцены:')
@@ -70,6 +112,7 @@ class EditorFrame(wx.Frame):
         # sidebar_bs.Add(edit, proportion=1)
         # scenes_header_p.SetSizer(scenes_header_bs)
         # sidebar_p.SetSizer(sidebar_bs)
+
 
 
     def createMenuBar(self):

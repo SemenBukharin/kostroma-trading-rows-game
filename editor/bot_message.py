@@ -96,15 +96,15 @@ class GifPost(Post):
 
 class RoundPost(Post):
     """Пост с круглым видео."""
-    def __init__(self, file_path, width=240):
+    def __init__(self, file_path, width=480):
         """Создаёт пост с круглым видео.
 
         Параметры:
         file_path - путь до видео
         width - ширина (и высота) видео
         """
-        media_converter.changeGIFResolution(file_path, (width, width), file_path)
-        super().__init__(open(file_path, 'rb'))
+        media_converter.changeVideoResolution(file_path, (width, width), 'sample.mp4')
+        super().__init__(open('sample.mp4', 'rb'))
 
 
 class ModelPost(Post):
@@ -177,6 +177,10 @@ class GroupPost(Post):
     """Пост, содержащий фото, видео, документы, аудио и (или) текст."""
     def __init__(self, posts):
         """Создаёт сгруппированный пост.
+        * документы нельзя смешивать с другими типами (кроме текста)
+        * аудио нельзя смешивать с другими типами (кроме текста)
+        * не больше 10 сообщений (не включая текст)
+        * только один текст
 
         Параметры:
         messages - посты, входящие в состав группы.
@@ -193,16 +197,32 @@ def get_sample_script():  # возвращает пример сценария
 
     post2 = TextPost('Ну что вы, нет конечно')
     post3 = TextPost('Так только в мультиках бывает 😊')
-    post4 = GifPost('gif.gif')
+    # post4 = GifPost('gif.gif')
+    post4 = RoundPost('face.mp4')
+
+    post5 = ImagePost('logo1.jpg')
+    post8 = ImagePost('logo2.png')
+    post9 = ImagePost('logo1.jpg')
+    post10 = ImagePost('logo2.png')
+    post11 = ImagePost('logo1.jpg')
+    post12 = ImagePost('logo2.png')
+    post13 = ImagePost('logo1.jpg')
+    post14 = ImagePost('logo2.png')
+    post15 = ImagePost('logo1.jpg')
     post5 = DocPost('док.docx')
+    # post5 = AudioPost('48a.mp3')
+    post6 = GroupPost(
+        [post4, post5, post8, post9, post5, post10, post11, post12, post13, post14, post15, post3])
 
     post1.add_next(next_post=post3, requiered_button=pink_btn)
-    post1.add_next(next_post=post4, requiered_button=gray_btn)
+    post1.add_next(next_post=post6, requiered_button=gray_btn)
     post1.add_next(next_post=post2, requiered_button=green_btn)
 
     post2.add_next(next_post=post5)
     post3.add_next(next_post=post1)
     post5.add_next(next_post=post1)
+
+    # post6.add_next(next_post=AudioPost('48a.mp3'))
 
     return post1
 

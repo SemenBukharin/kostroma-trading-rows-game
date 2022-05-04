@@ -71,6 +71,7 @@ class Bot:
         @self.tgbot.callback_query_handler(func=lambda call: True)
         def handle_buttons(call):
             """Обрабатывает нажатия на кнопки."""
+            self.tgbot.answer_callback_query(call.id)
             post = None
             for user_id, last_post, last_message_id in self.user_table:
                 if user_id == call.from_user.id and last_message_id == call.message.id:
@@ -97,34 +98,55 @@ class Bot:
         new_post - пост для отправки (тип bot_message.Post)
         """
         if isinstance(new_post, TextPost):
-            sent = self.tgbot.send_message(received.chat.id, new_post.content)
+            sent = self.tgbot.send_message(received.chat.id, new_post.content, timeout=30)
         elif isinstance(new_post, ImagePost):
-            sent = self.tgbot.send_photo(received.chat.id, new_post.content)
+            sent = self.tgbot.send_photo(received.chat.id, new_post.content, timeout=30)
         elif isinstance(new_post, VideoPost):
-            sent = self.tgbot.send_video(received.chat.id, new_post.content)
+            sent = self.tgbot.send_video(received.chat.id, new_post.content, timeout=30)
         elif isinstance(new_post, VoicePost):
-            sent = self.tgbot.send_voice(received.chat.id, new_post.content)
+            sent = self.tgbot.send_voice(received.chat.id, new_post.content, timeout=30)
         elif isinstance(new_post, GifPost):
-            sent = self.tgbot.send_animation(received.chat.id, new_post.content)
+            sent = self.tgbot.send_animation(received.chat.id, new_post.content, timeout=30)
         elif isinstance(new_post, RoundPost):
-            sent = self.tgbot.send_video_note(received.chat.id, new_post.content, length=240)
+            sent = self.tgbot.send_video_note(received.chat.id, new_post.content, length=240, timeout=30)
         elif isinstance(new_post, ModelPost):
             pass  # TODO: реализовать
         elif isinstance(new_post, DocPost):
-            sent = self.tgbot.send_document(received.chat.id, new_post.content)
+            sent = self.tgbot.send_document(received.chat.id, new_post.content, timeout=30)
         elif isinstance(new_post, AudioPost):
-            sent = self.tgbot.send_audio(received.chat.id, new_post.content)
+            sent = self.tgbot.send_audio(received.chat.id, new_post.content, timeout=30)
         elif isinstance(new_post, StickerPost):
-            sent = self.tgbot.send_sticker(received.chat.id, new_post.content)
+            sent = self.tgbot.send_sticker(received.chat.id, new_post.content, timeout=30)
         elif isinstance(new_post, ButtonsPost):
             markup_inline = types.InlineKeyboardMarkup()
             for button in new_post.content:
                 new_item = types.InlineKeyboardButton(text=button.text,
                                                       callback_data=button.callback_data)
                 markup_inline.add(new_item)
-            sent = self.tgbot.send_message(received.chat.id, new_post.caption, reply_markup=markup_inline)
+            sent = self.tgbot.send_message(received.chat.id, new_post.caption, reply_markup=markup_inline, timeout=30)
         elif isinstance(new_post, GroupPost):
-            pass  # TODO: реализовать
+            caption = None
+            medias = []
+            full = False
+            for post in new_post.content:
+                if isinstance(post, TextPost):
+                    caption = post.content
+                elif not full:
+                    if len(medias)>9:
+                        full = True
+                    elif isinstance(post, ImagePost):
+                        medias.append(types.InputMediaPhoto(post.content))
+                    elif isinstance(post, VideoPost):
+                        medias.append(types.InputMediaVideo(post.content))
+                    elif isinstance(post, DocPost):
+                        medias = [types.InputMediaDocument(post.content)]
+                        full = True
+                    elif isinstance(post, AudioPost):
+                        medias= [types.InputMediaAudio(post.content)]
+                        full = True
+            if len(medias) > 0:
+                medias[0].caption = caption
+                sent = self.tgbot.send_media_group(received.chat.id, medias, timeout=30)[-1]
         else:
             sent = None
             print('хз')
