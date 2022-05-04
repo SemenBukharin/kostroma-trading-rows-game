@@ -107,7 +107,7 @@ class EditorFrame(wx.Frame):
         pass
 
     def get_scenes_names(self):
-        return ['сцена 1', 'сцена 2', 'сцена 3']  # TODO: реализовать
+        return ['сцена 1', 'сцена 2', 'сцена 3']*10  # TODO: реализовать
 
     def get_resources_names(self):
         return ['pic.jpg', 'video.mp4', 'voice.ogg']  # TODO: реализовать
