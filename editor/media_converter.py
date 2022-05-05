@@ -6,8 +6,8 @@ import os
 
 def changeVideoResolution(path, resolution): 
     # путь к файлу, кортеж - разрешение (напр. (480, 480)), новое имя (с расширением файла)
-    vid = VideoCapture(path)
-    height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    vid = cv2.VideoCapture(path)
+    height = vid.get(cv2.CAP_PROP_FRAME_HcEIGHT)
     width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
     if height==width and height<=640 :
         return
