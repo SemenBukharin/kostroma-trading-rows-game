@@ -42,7 +42,8 @@ def changeGIFResolution(path, resolution):
     os.remove(path)
     shutil.copy(supportFileName, path)
     os.remove(supportFileName)
-    
+
+
 def thumbnails(frames, resolution): # вспомогательная функция
     # Output (max) size
     #size = 320, 240
@@ -52,7 +53,7 @@ def thumbnails(frames, resolution): # вспомогательная функц�
         #thumbnail.thumbnail(size, Image.ANTIALIAS)
         thumbnail = thumbnail.resize(resolution)
         yield thumbnail
-        
+
 def getFileExtension(path):
     lastDotIndex = path.rindex(".")
     return path[lastDotIndex:]
@@ -65,4 +66,4 @@ def getFilePathWithoutFname(path):
     return path[:lastIndexOfSlash]
 
 #changeVideoResolution("face.mp4", (480, 480))
-   
+
