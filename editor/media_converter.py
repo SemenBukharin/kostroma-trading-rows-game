@@ -1,12 +1,20 @@
 from moviepy.editor import *
 import cv2
 from PIL import Image, ImageSequence
+import shutil
+import os
 
-def changeVideoResolution(path, resolution, newName): 
+def changeVideoResolution(path, resolution): 
     # путь к файлу, кортеж - разрешение (напр. (480, 480)), новое имя (с расширением файла)
+    extension = getFileExtension(path)
+    supportFileName = getFilePathWithoutFname(path)+"supportFile"+extension
+    shutil.copy(path, supportFileName)
     video = VideoFileClip(path)
     result = video.resize(resolution)
-    result.write_videofile(newName)
+    result.write_videofile(supportFileName)
+    os.remove(path)
+    shutil.copy(supportFileName, path)
+    os.remove(supportFileName)
     
 def changeImageResolution(path, resolution, newName): 
     # путь к файлу, кортеж - разрешение (напр. (480, 480)), новое имя (с расширением файла)
@@ -31,3 +39,22 @@ def thumbnails(frames, resolution): # вспомогательная функц�
         #thumbnail.thumbnail(size, Image.ANTIALIAS)
         thumbnail = thumbnail.resize(resolution)
         yield thumbnail
+        
+def getFileExtension(path):
+    lastDotIndex = path.rindex(".")
+    return path[lastDotIndex:]
+
+def getFilePathWithoutFname(path):
+    try:
+        lastIndexOfSlash = path.rindex("/")
+    except:
+        lastIndexOfSlash = 0
+    return path[:lastIndexOfSlash]
+
+changeVideoResolution("face.mp4", (480, 480))
+
+
+    
+#print(getFileExtension("face.mp4"))
+
+    
