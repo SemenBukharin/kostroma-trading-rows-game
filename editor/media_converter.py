@@ -16,19 +16,32 @@ def changeVideoResolution(path, resolution):
     shutil.copy(supportFileName, path)
     os.remove(supportFileName)
     
-def changeImageResolution(path, resolution, newName): 
+def changeImageResolution(path, resolution): 
     # путь к файлу, кортеж - разрешение (напр. (480, 480)), новое имя (с расширением файла)
+    extension = getFileExtension(path)
+    supportFileName = getFilePathWithoutFname(path)+"supportFile"+extension
+    shutil.copy(path, supportFileName)
     image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
     result = cv2.resize(image, resolution)
-    cv2.imwrite(newName, result)
+    cv2.imwrite(supportFileName, result)
+    os.remove(path)
+    shutil.copy(supportFileName, path)
+    os.remove(supportFileName)
     
-def changeGIFResolution(path, resolution, newName):     
+    
+def changeGIFResolution(path, resolution):  
+    extension = getFileExtension(path)
+    supportFileName = getFilePathWithoutFname(path)+"supportFile"+extension
+    shutil.copy(path, supportFileName)
     gif = Image.open(path)
     frames = ImageSequence.Iterator(gif)
     frames = thumbnails(frames, resolution)
     om = next(frames) # Handle first frame separately
     om.info = gif.info # Copy sequence info
-    om.save(newName, save_all=True, append_images=list(frames), loop=0)
+    om.save(supportFileName, save_all=True, append_images=list(frames), loop=0)
+    os.remove(path)
+    shutil.copy(supportFileName, path)
+    os.remove(supportFileName)
     
 def thumbnails(frames, resolution): # вспомогательная функция
     # Output (max) size
@@ -51,10 +64,5 @@ def getFilePathWithoutFname(path):
         lastIndexOfSlash = 0
     return path[:lastIndexOfSlash]
 
-changeVideoResolution("face.mp4", (480, 480))
-
-
-    
-#print(getFileExtension("face.mp4"))
-
-    
+#changeVideoResolution("face.mp4", (480, 480))
+   
