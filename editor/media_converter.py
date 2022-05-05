@@ -10,15 +10,16 @@ def changeVideoResolution(path, resolution):
     height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
     width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
     if height==width and height<=640 :
-        extension = getFileExtension(path)
-        supportFileName = getFilePathWithoutFname(path)+"supportFile"+extension
-        shutil.copy(path, supportFileName)
-        video = VideoFileClip(path)
-        result = video.resize(resolution)
-        result.write_videofile(supportFileName)
-        os.remove(path)
-        shutil.copy(supportFileName, path)
-        os.remove(supportFileName)
+        return
+    extension = getFileExtension(path)
+    supportFileName = getFilePathWithoutFname(path)+"supportFile"+extension
+    shutil.copy(path, supportFileName)
+    video = VideoFileClip(path)
+    result = video.resize(resolution)
+    result.write_videofile(supportFileName)
+    os.remove(path)
+    shutil.copy(supportFileName, path)
+    os.remove(supportFileName)
     
 def changeImageResolution(path, resolution): 
     # путь к файлу, кортеж - разрешение (напр. (480, 480)), новое имя (с расширением файла)
