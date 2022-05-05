@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import random
 import string
 import media_converter
-# TODO: аннотации типов
+import os
 
 
 class Post(ABC):
@@ -41,6 +41,7 @@ class Post(ABC):
                 # пост нужно отправить, если полученное от игрока сообщение содержит
                 # ключевое слово
                 pass  # TODO: реализовать поиск ключевых слов в строке
+            print(received.lower(), requiered_callback.lower())
             if received.lower() == requiered_callback.lower():
                 # полученное сообщение совпало с ожидаемым
                 return next_post
@@ -69,24 +70,27 @@ class TextPost(Post):
 class ImagePost(Post):
     """Пост с картинкой."""
     def __init__(self, file_path):
-        super().__init__(open(file_path, 'rb'))
+        if not os.path.exists(file_path) and os.path.getsize(file_path):
+            raise Exception(f'Файл {file_path} пуст либо не существует.')
+        super().__init__(file_path)
 
 
 class VideoPost(Post):
     """Пост с видео."""
     def __init__(self, file_path):
-        super().__init__(open(file_path, 'rb'))
+        if not os.path.exists(file_path) and os.path.getsize(file_path):
+            raise Exception(f'Файл {file_path} пуст либо не существует.')
+        super().__init__(file_path)
 
 
 class VoicePost(Post):  # должен быть формат ogg
     """Пост с голосовым сообщением"""
     def __init__(self, file_path):
-        super().__init__(open(file_path, 'rb'))
-        self.text = self.get_text()
-
-    def get_text(self):
-        """Распознаёт текст в голосовом сообщении."""
-        pass  # TODO: распознавание речи
+        if not os.path.exists(file_path) and os.path.getsize(file_path):
+            raise Exception(f'Файл {file_path} пуст либо не существует.')
+        mc = media_converter.MediaConverter()
+        file_path = mc.convertToOgg(file_path)  # может выбросить исключение
+        super().__init__(file_path)
 
 class GifPost(Post):
     """Пост с gif-анимацией."""
@@ -103,8 +107,9 @@ class RoundPost(Post):
         file_path - путь до видео
         width - ширина (и высота) видео
         """
-        media_converter.changeVideoResolution(file_path, (width, width), 'sample.mp4')
-        super().__init__(open('sample.mp4', 'rb'))
+        mc = media_converter.MediaConverter()
+        mc.changeVideoResolution(file_path, (width, width))
+        super().__init__(open(file_path, 'rb'))
 
 
 class ModelPost(Post):
@@ -200,6 +205,7 @@ def get_sample_script():  # возвращает пример сценария
     # post4 = GifPost('gif.gif')
     post4 = RoundPost('face.mp4')
 
+    # TODO: проблема зелёный - серенький (скорее всего не закрывается документ)
     post5 = ImagePost('logo1.jpg')
     post8 = ImagePost('logo2.png')
     post9 = ImagePost('logo1.jpg')
@@ -210,6 +216,7 @@ def get_sample_script():  # возвращает пример сценария
     post14 = ImagePost('logo2.png')
     post15 = ImagePost('logo1.jpg')
     post5 = DocPost('док.docx')
+    post9000 = DocPost('док.docx')
     # post5 = AudioPost('48a.mp3')
     post6 = GroupPost(
         [post4, post5, post8, post9, post5, post10, post11, post12, post13, post14, post15, post3])
@@ -221,6 +228,8 @@ def get_sample_script():  # возвращает пример сценария
     post2.add_next(next_post=post5)
     post3.add_next(next_post=post1)
     post5.add_next(next_post=post1)
+
+    post6.add_next(next_post=post14, requiered_callback='до свидания')
 
     # post6.add_next(next_post=AudioPost('48a.mp3'))
 

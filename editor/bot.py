@@ -2,7 +2,7 @@ import telebot  # pip install pyTelegramBotAPI
 from telebot import types
 from bot_message import *
 from config import TOKEN
-
+import media_converter
 
 class Bot:
     """Класс Telegram-бота с игрой."""
@@ -48,7 +48,7 @@ class Bot:
                 self.send(received=message, new_post=post)
                 message.text = None
 
-
+        AUDIO_OGG = 'audio.ogg'
         @self.tgbot.message_handler(content_types=['voice'])
         def handle_voice(message):
             """Обрабатывает голосовые сообщения от игрока."""
@@ -60,13 +60,19 @@ class Bot:
             if post is None:
                 # игрок ещё не начал игру (не нажал на "Старт")
                 return
+            file_info = self.tgbot.get_file(message.voice.file_id)
+            downloaded_file = self.tgbot.download_file(file_info.file_path)
+            with open(AUDIO_OGG, 'wb') as f:
+                f.write(downloaded_file)
+            mc = media_converter.MediaConverter()
+            text = mc.voiceToText(AUDIO_OGG)
             while True:
-                post = post.get_next(message.voice)  # получаем новые сообщения для отправки
+                post = post.get_next(text)  # получаем новые сообщения для отправки
                 if post is None:
                     # сообщения кончились либо ожидается ответ от пользователя
                     break
                 self.send(received=message, new_post=post)
-                message.voice = None
+                text = None
 
         @self.tgbot.callback_query_handler(func=lambda call: True)
         def handle_buttons(call):
@@ -144,22 +150,19 @@ class Bot:
                     elif isinstance(post, AudioPost):
                         medias= [types.InputMediaAudio(post.content)]
                         full = True
+            print(medias)
             if len(medias) > 0:
                 medias[0].caption = caption
                 sent = self.tgbot.send_media_group(received.chat.id, medias, timeout=30)[-1]
         else:
             sent = None
             print('хз')
-        # сохраняем id последнего отправленного сообщения для конкретного пользователя
+        # сохраняем id последнего отправленного сообщения для конкретного пользователя и новый пост
         for line in self.user_table:
-            user_id, _, last_message_id = line
-            print(user_id, received.chat.id)
+            user_id, last_post, last_message_id = line
             if user_id == received.chat.id:
-                line[2] = sent.id
+                line[1], line[2] = new_post, sent.id
                 break
-
-    def voice_to_text(self, voice):
-        pass
 
 
 bot = Bot(TOKEN, get_sample_script())
