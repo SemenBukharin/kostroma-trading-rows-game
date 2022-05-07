@@ -89,16 +89,17 @@ class MediaConverter:
 
     FFMPEG_PATH = r'ffmpeg\bin\ffmpeg.exe'
     AUDIO_WAV = 'audio.wav'
+    UNKNOWN = '#'
     def voiceToText(self, audio_ogg):
-        process = subprocess.run([self.FFMPEG_PATH, '-loglevel', 'quiet', '-i', audio_ogg,
-                                  '-y', '-c:a', 'pcm_s16le', self.AUDIO_WAV])
+        command = f'{self.FFMPEG_PATH} -loglevel quiet -i {audio_ogg} -y -c:a pcm_s16le {self.AUDIO_WAV}'
+        process = subprocess.run(command.split())
         r = sr.Recognizer()
         with sr.AudioFile(self.AUDIO_WAV) as source:
             audio = r.record(source)
         try:
             text = r.recognize_google(audio, language = 'ru-RU')
         except:
-            text = "#"
+            text = self.UNKNOWN
         os.remove(self.AUDIO_WAV)
         os.remove(audio_ogg)
         print(text)  # TODO: отправлять сообщением ботом

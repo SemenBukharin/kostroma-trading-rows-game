@@ -66,6 +66,10 @@ class Bot:
                 f.write(downloaded_file)
             mc = media_converter.MediaConverter()
             text = mc.voiceToText(AUDIO_OGG)
+            if text == mc.UNKNOWN:
+                self.send(received=message, new_post=TextPost('🙁 Извините, я не понял, что вы сказали'))
+            else:
+                self.send(received=message, new_post=TextPost(f'😊 Кажется, вы сказали: {text}'))
             while True:
                 post = post.get_next(text)  # получаем новые сообщения для отправки
                 if post is None:

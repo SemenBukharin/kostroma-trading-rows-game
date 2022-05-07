@@ -41,7 +41,6 @@ class Post(ABC):
                 # пост нужно отправить, если полученное от игрока сообщение содержит
                 # ключевое слово
                 pass  # TODO: реализовать поиск ключевых слов в строке
-            print(received.lower(), requiered_callback.lower())
             if received.lower() == requiered_callback.lower():
                 # полученное сообщение совпало с ожидаемым
                 return next_post
@@ -242,6 +241,10 @@ class GroupPost(Post):
         """
         if not posts:
             raise Exception('Пустой сгруппированный пост.')
+        if not all([isinstance(post, TextPost) or isinstance(post, DocPost) or
+                    isinstance(post, AudioPost) or isinstance(post, ImagePost) or 
+                    isinstance(post, VideoPost) for post in posts]):
+            raise Exception('Сгруппированный пост может содержать только документы, видео, аудио, фото или текст.')
         text_posts = []
         posts_without_text = []
         for post in posts:
@@ -272,50 +275,51 @@ class GroupPost(Post):
 
 
 def get_sample_script():  # возвращает пример сценария
-    # gray_btn = Button('серенький')
-    # pink_btn = Button('розовый')
-    # green_btn = Button('зелёный')
+    gray_btn = Button('серенький')
+    pink_btn = Button('розовый')
+    green_btn = Button('зелёный')
 
-    # post1 = ButtonsPost('Какого цвета бегемот?', [gray_btn, pink_btn, green_btn])
+    post1 = ButtonsPost('Какого цвета бегемот?', [gray_btn, pink_btn, green_btn])
 
-    # post2 = TextPost('Ну что вы, нет конечно')
-    # post3 = TextPost('Так только в мультиках бывает 😊')
-    # # post4 = GifPost('gif.gif')
-    # post4 = RoundPost('face.mp4')
+    post2 = TextPost('Ну что вы, нет конечно')
+    post3 = TextPost('Так только в мультиках бывает 😊')
+    # post4 = GifPost('gif.gif')
+    post4 = RoundPost('face.mp4')
 
-    # # TODO: проблема зелёный - серенький (скорее всего не закрывается документ)
-    # post5 = ImagePost('logo1.jpg')
-    # post8 = ImagePost('logo2.png')
-    # post9 = ImagePost('logo1.jpg')
-    # post10 = ImagePost('logo2.png')
-    # post11 = ImagePost('logo1.jpg')
-    # post12 = ImagePost('logo2.png')
-    # post13 = ImagePost('logo1.jpg')
-    # post14 = ImagePost('logo2.png')
-    # post15 = ImagePost('logo1.jpg')
-    # post5 = DocPost('док.docx')
-    # post9000 = DocPost('док.docx')
-    # # post5 = AudioPost('48a.mp3')
+    # TODO: проблема зелёный - серенький (скорее всего не закрывается документ)
+    post5 = ImagePost('logo1.jpg')
+    post8 = ImagePost('logo2.png')
+    post9 = ImagePost('logo1.jpg')
+    post10 = ImagePost('logo2.png')
+    post11 = ImagePost('logo1.jpg')
+    post12 = ImagePost('logo2.png')
+    post13 = ImagePost('logo1.jpg')
+    post14 = ImagePost('logo2.png')
+    post15 = ImagePost('logo1.jpg')
+    post5 = DocPost('док.docx')
+    post9000 = DocPost('док.docx')
+    # post5 = AudioPost('48a.mp3')
+    post6 = TextPost('Всё.')
     # post6 = GroupPost(
-    #     [post4, post5, post8, post9, post5, post10, post11, post12, post13, post14, post15, post3])
+    #     [VideoPost('sample.mp4'), post8, post9, post10, post10, post11, post12, post13, post14, post15, post3])
 
-    # post1.add_next(next_post=post3, requiered_button=pink_btn)
-    # post1.add_next(next_post=post6, requiered_button=gray_btn)
-    # post1.add_next(next_post=post2, requiered_button=green_btn)
+    post1.add_next(next_post=post3, requiered_button=pink_btn)
+    post1.add_next(next_post=post6, requiered_button=gray_btn)
+    post1.add_next(next_post=post2, requiered_button=green_btn)
 
-    # post2.add_next(next_post=post5)
-    # post3.add_next(next_post=post1)
-    # post5.add_next(next_post=post1)
+    post2.add_next(next_post=post5)
+    post3.add_next(next_post=post1)
+    post5.add_next(next_post=post1)
 
-    # post6.add_next(next_post=post14, requiered_callback='до свидания')
+    post6.add_next(next_post=post14, requiered_callback='до свидания')
 
-    # # post6.add_next(next_post=AudioPost('48a.mp3'))
+    # post6.add_next(next_post=AudioPost('48a.mp3'))
 
-    # return post1
+    return post1
 
     # return StickerPost('index.html')
 
-    return GroupPost([DocPost('док.docx'), TextPost('Это документ.')])
+    # return GroupPost([DocPost('док.docx'), TextPost('Это документ.')])
 
 
 # post = get_sample_script()
