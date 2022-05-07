@@ -69,37 +69,66 @@ class TextPost(Post):
 
 class ImagePost(Post):
     """Пост с картинкой."""
+    FORMATS = ['.jpg', '.jpeg', '.png', '.webp']  # доступные форматы изображений
     def __init__(self, file_path):
-        if not os.path.exists(file_path) and os.path.getsize(file_path):
-            raise Exception(f'Файл {file_path} пуст либо не существует.')
+        if not os.path.exists(file_path):
+            raise Exception(f'Файл {file_path} не существует.')
+        if not os.path.getsize(file_path):
+            raise Exception(f'Файл {file_path} не должен быть пустым.')
+        mc = media_converter.MediaConverter()
+        if not mc.getFileExtension(file_path) in self.FORMATS:
+            raise Exception(f'Файл {file_path} имеет недопустимый формат.')
         super().__init__(file_path)
 
 
 class VideoPost(Post):
     """Пост с видео."""
+    FORMATS = ['.mp4']
     def __init__(self, file_path):
-        if not os.path.exists(file_path) and os.path.getsize(file_path):
-            raise Exception(f'Файл {file_path} пуст либо не существует.')
+        if not os.path.exists(file_path):
+            raise Exception(f'Файл {file_path} не существует.')
+        if not os.path.getsize(file_path):
+            raise Exception(f'Файл {file_path} не должен быть пустым.')
+        mc = media_converter.MediaConverter()
+        if not mc.getFileExtension(file_path) in self.FORMATS:
+            raise Exception(f'Файл {file_path} имеет недопустимый формат.')
         super().__init__(file_path)
 
 
 class VoicePost(Post):  # должен быть формат ogg
     """Пост с голосовым сообщением"""
+    FORMATS = ['.ogg']
     def __init__(self, file_path):
-        if not os.path.exists(file_path) and os.path.getsize(file_path):
-            raise Exception(f'Файл {file_path} пуст либо не существует.')
+        if not os.path.exists(file_path):
+            raise Exception(f'Файл {file_path} не существует.')
+        if not os.path.getsize(file_path):
+            raise Exception(f'Файл {file_path} не должен быть пустым.')
         mc = media_converter.MediaConverter()
-        file_path = mc.convertToOgg(file_path)  # может выбросить исключение
+        if not mc.getFileExtension(file_path) in self.FORMATS:
+            file_path = mc.convertToOgg(file_path)  # выбрасывает исключение в случае 
+                                                    # неподдерживаемого формата
         super().__init__(file_path)
+
 
 class GifPost(Post):
     """Пост с gif-анимацией."""
+    FORMATS = ['.gif']
     def __init__(self, file_path):
-        super().__init__(open(file_path, 'rb'))
+        if not os.path.exists(file_path):
+            raise Exception(f'Файл {file_path} не существует.')
+        if not os.path.getsize(file_path):
+            raise Exception(f'Файл {file_path} не должен быть пустым.')
+        mc = media_converter.MediaConverter()
+        if not mc.getFileExtension(file_path) in self.FORMATS:
+            raise Exception(f'Файл {file_path} имеет недопустимый формат.')
+        super().__init__(file_path)
 
 
 class RoundPost(Post):
     """Пост с круглым видео."""
+    FORMATS = ['.mp4']
+    WIDTH = 480  # ширина (высота) видео по умолчанию
+
     def __init__(self, file_path, width=480):
         """Создаёт пост с круглым видео.
 
@@ -107,38 +136,59 @@ class RoundPost(Post):
         file_path - путь до видео
         width - ширина (и высота) видео
         """
+        if not os.path.exists(file_path):
+            raise Exception(f'Файл {file_path} не существует.')
+        if not os.path.getsize(file_path):
+            raise Exception(f'Файл {file_path} не должен быть пустым.')
         mc = media_converter.MediaConverter()
+        if not mc.getFileExtension(file_path) in self.FORMATS:
+            raise Exception(f'Файл {file_path} имеет недопустимый формат.')
+        if width < 10:
+            raise Exception(f'Указана недопустимая ширина (высота) видео.')
+        width = min(width, self.WIDTH)
         mc.changeVideoResolution(file_path, (width, width))
-        super().__init__(open(file_path, 'rb'))
-
-
-class ModelPost(Post):
-    """Пост со ссылкой на страницу с 3D-моделью."""
-    def __init__(self, file_path):
-        super().__init__(self.get_html_markup(file_path))
-
-    def get_html_markup(self, file_path):
-        """Возвращает разметку html-страницы с 3D-моделью."""
-        pass  # TODO: генерация html-разметки
+        self.width = width
+        super().__init__(file_path)
 
 
 class DocPost(Post):
     """Пост с прикреплённым документом (произвольным файлом)."""
     def __init__(self, file_path):
-        # TODO: файл должен быть не пустым - обработать
-        super().__init__(open(file_path, 'rb'))
+        if not os.path.exists(file_path):
+            raise Exception(f'Файл {file_path} не существует.')
+        if not os.path.getsize(file_path):
+            raise Exception(f'Файл {file_path} не должен быть пустым.')
+        super().__init__(file_path)
 
 
 class AudioPost(Post):
     """Пост с аудиозаписью."""
+    # mp3 формат
+    FORMATS = ['.mp3']
     def __init__(self, file_path):
-        super().__init__(open(file_path, 'rb'))
+        if not os.path.exists(file_path):
+            raise Exception(f'Файл {file_path} не существует.')
+        if not os.path.getsize(file_path):
+            raise Exception(f'Файл {file_path} не должен быть пустым.')
+        mc = media_converter.MediaConverter()
+        if not mc.getFileExtension(file_path) in self.FORMATS:
+            file_path = mc.convertToMp3(file_path)  # выбрасывает исключение в случае 
+                                                    # неподдерживаемого формата
+        super().__init__(file_path)
 
 
 class StickerPost(Post):
     """Пост с картинкой-стикером."""
+    FORMATS = ImagePost.FORMATS
     def __init__(self, file_path):
-        super().__init__(open(file_path, 'rb'))
+        if not os.path.exists(file_path):
+            raise Exception(f'Файл {file_path} не существует.')
+        if not os.path.getsize(file_path):
+            raise Exception(f'Файл {file_path} не должен быть пустым.')
+        mc = media_converter.MediaConverter()
+        if not mc.getFileExtension(file_path) in self.FORMATS:
+            raise Exception(f'Файл {file_path} имеет недопустимый формат.')
+        super().__init__(file_path)
 
 
 class ButtonsPost(Post):
@@ -190,50 +240,82 @@ class GroupPost(Post):
         Параметры:
         messages - посты, входящие в состав группы.
         """
+        if not posts:
+            raise Exception('Пустой сгруппированный пост.')
+        text_posts = []
+        posts_without_text = []
+        for post in posts:
+            if isinstance(post, TextPost):
+                text_posts.append(post)
+            else:
+                posts_without_text.append(post)
+        posts = posts_without_text
+        # print(posts)
+        if len(posts)>10:
+            raise Exception('Сгруппированный пост не может содержать больше 10 сообщений (не включая текст).')
+        if len(text_posts)>1:
+            raise Exception('Сгруппированный пост может включать в себя только одно текстовое сообщение.')
+        doc_posts = list(filter(lambda p: isinstance(p, DocPost), posts))
+        if len(doc_posts)>1:
+            raise Exception('Можно отправлять только один документ.')
+        if doc_posts and len(posts)>len(doc_posts):
+            raise Exception('Документы нельзя смешивать с другими типами сообщений.')
+        audio_posts = list(filter(lambda p: isinstance(p, AudioPost), posts))
+        if len(audio_posts)>1:
+            raise Exception('Можно отправлять только один аудиофайл.')
+        if audio_posts and len(posts)>len(audio_posts):
+            raise Exception('Аудио нельзя смешивать с другими типами сообщений.')
+        self.caption = text_posts[0].content if text_posts else None
+        # if text_posts:
+        #     self.caption = text_posts[0]
         super().__init__(posts)
 
 
 def get_sample_script():  # возвращает пример сценария
-    gray_btn = Button('серенький')
-    pink_btn = Button('розовый')
-    green_btn = Button('зелёный')
+    # gray_btn = Button('серенький')
+    # pink_btn = Button('розовый')
+    # green_btn = Button('зелёный')
 
-    post1 = ButtonsPost('Какого цвета бегемот?', [gray_btn, pink_btn, green_btn])
+    # post1 = ButtonsPost('Какого цвета бегемот?', [gray_btn, pink_btn, green_btn])
 
-    post2 = TextPost('Ну что вы, нет конечно')
-    post3 = TextPost('Так только в мультиках бывает 😊')
-    # post4 = GifPost('gif.gif')
-    post4 = RoundPost('face.mp4')
+    # post2 = TextPost('Ну что вы, нет конечно')
+    # post3 = TextPost('Так только в мультиках бывает 😊')
+    # # post4 = GifPost('gif.gif')
+    # post4 = RoundPost('face.mp4')
 
-    # TODO: проблема зелёный - серенький (скорее всего не закрывается документ)
-    post5 = ImagePost('logo1.jpg')
-    post8 = ImagePost('logo2.png')
-    post9 = ImagePost('logo1.jpg')
-    post10 = ImagePost('logo2.png')
-    post11 = ImagePost('logo1.jpg')
-    post12 = ImagePost('logo2.png')
-    post13 = ImagePost('logo1.jpg')
-    post14 = ImagePost('logo2.png')
-    post15 = ImagePost('logo1.jpg')
-    post5 = DocPost('док.docx')
-    post9000 = DocPost('док.docx')
-    # post5 = AudioPost('48a.mp3')
-    post6 = GroupPost(
-        [post4, post5, post8, post9, post5, post10, post11, post12, post13, post14, post15, post3])
+    # # TODO: проблема зелёный - серенький (скорее всего не закрывается документ)
+    # post5 = ImagePost('logo1.jpg')
+    # post8 = ImagePost('logo2.png')
+    # post9 = ImagePost('logo1.jpg')
+    # post10 = ImagePost('logo2.png')
+    # post11 = ImagePost('logo1.jpg')
+    # post12 = ImagePost('logo2.png')
+    # post13 = ImagePost('logo1.jpg')
+    # post14 = ImagePost('logo2.png')
+    # post15 = ImagePost('logo1.jpg')
+    # post5 = DocPost('док.docx')
+    # post9000 = DocPost('док.docx')
+    # # post5 = AudioPost('48a.mp3')
+    # post6 = GroupPost(
+    #     [post4, post5, post8, post9, post5, post10, post11, post12, post13, post14, post15, post3])
 
-    post1.add_next(next_post=post3, requiered_button=pink_btn)
-    post1.add_next(next_post=post6, requiered_button=gray_btn)
-    post1.add_next(next_post=post2, requiered_button=green_btn)
+    # post1.add_next(next_post=post3, requiered_button=pink_btn)
+    # post1.add_next(next_post=post6, requiered_button=gray_btn)
+    # post1.add_next(next_post=post2, requiered_button=green_btn)
 
-    post2.add_next(next_post=post5)
-    post3.add_next(next_post=post1)
-    post5.add_next(next_post=post1)
+    # post2.add_next(next_post=post5)
+    # post3.add_next(next_post=post1)
+    # post5.add_next(next_post=post1)
 
-    post6.add_next(next_post=post14, requiered_callback='до свидания')
+    # post6.add_next(next_post=post14, requiered_callback='до свидания')
 
-    # post6.add_next(next_post=AudioPost('48a.mp3'))
+    # # post6.add_next(next_post=AudioPost('48a.mp3'))
 
-    return post1
+    # return post1
+
+    # return StickerPost('index.html')
+
+    return GroupPost([DocPost('док.docx'), TextPost('Это документ.')])
 
 
-# TODO: функция для создания квадратных видео 240х240
+# post = get_sample_script()

@@ -23,7 +23,7 @@ class Bot:
             if any([user_id == message.from_user.id for user_id, _, _ in self.user_table]):
                 return  # данный игрок уже начал игру
             # делаем запись о новом игроке
-            self.user_table.append([message.from_user.id, self.start_post, message.id])
+            self.user_table.append((message.from_user.id, self.start_post, message.id))
             print(f'Пользователь {message.from_user.id} начал игру.')
             self.send(message, self.start_post)  # отправляем первое сообщение
 
@@ -96,6 +96,7 @@ class Bot:
 
         self.tgbot.infinity_polling()  # начинаем слушать бота
 
+    TIMEOUT = 30
     def send(self, received, new_post):
         """Отправляет пост в чат.
 
@@ -104,64 +105,70 @@ class Bot:
         new_post - пост для отправки (тип bot_message.Post)
         """
         if isinstance(new_post, TextPost):
-            sent = self.tgbot.send_message(received.chat.id, new_post.content, timeout=30)
+            sent = self.tgbot.send_message(received.chat.id, new_post.content, timeout=self.TIMEOUT)
         elif isinstance(new_post, ImagePost):
-            sent = self.tgbot.send_photo(received.chat.id, new_post.content, timeout=30)
+            with open(new_post.content, 'rb') as content:
+                sent = self.tgbot.send_photo(received.chat.id, content, timeout=self.TIMEOUT)
         elif isinstance(new_post, VideoPost):
-            sent = self.tgbot.send_video(received.chat.id, new_post.content, timeout=30)
+            with open(new_post.content, 'rb') as content:
+                sent = self.tgbot.send_video(received.chat.id, content, timeout=self.TIMEOUT)
         elif isinstance(new_post, VoicePost):
-            sent = self.tgbot.send_voice(received.chat.id, new_post.content, timeout=30)
+            with open(new_post.content, 'rb') as content:
+                sent = self.tgbot.send_voice(received.chat.id, content, timeout=self.TIMEOUT)
         elif isinstance(new_post, GifPost):
-            sent = self.tgbot.send_animation(received.chat.id, new_post.content, timeout=30)
+            with open(new_post.content, 'rb') as content:
+                sent = self.tgbot.send_animation(received.chat.id, content, timeout=self.TIMEOUT)
         elif isinstance(new_post, RoundPost):
-            sent = self.tgbot.send_video_note(received.chat.id, new_post.content, length=240, timeout=30)
-        elif isinstance(new_post, ModelPost):
-            pass  # TODO: реализовать
+            with open(new_post.content, 'rb') as content:
+                sent = self.tgbot.send_video_note(received.chat.id, content,
+                                                  length=new_post.width, timeout=self.TIMEOUT)
         elif isinstance(new_post, DocPost):
-            sent = self.tgbot.send_document(received.chat.id, new_post.content, timeout=30)
+            with open(new_post.content, 'rb') as content:
+                sent = self.tgbot.send_document(received.chat.id, content, timeout=self.TIMEOUT)
         elif isinstance(new_post, AudioPost):
-            sent = self.tgbot.send_audio(received.chat.id, new_post.content, timeout=30)
+            with open(new_post.content, 'rb') as content:
+                sent = self.tgbot.send_audio(received.chat.id, content, timeout=self.TIMEOUT)
         elif isinstance(new_post, StickerPost):
-            sent = self.tgbot.send_sticker(received.chat.id, new_post.content, timeout=30)
+            with open(new_post.content, 'rb') as content:
+                sent = self.tgbot.send_sticker(received.chat.id, content, timeout=self.TIMEOUT)
         elif isinstance(new_post, ButtonsPost):
             markup_inline = types.InlineKeyboardMarkup()
             for button in new_post.content:
                 new_item = types.InlineKeyboardButton(text=button.text,
                                                       callback_data=button.callback_data)
                 markup_inline.add(new_item)
-            sent = self.tgbot.send_message(received.chat.id, new_post.caption, reply_markup=markup_inline, timeout=30)
+            sent = self.tgbot.send_message(received.chat.id, new_post.caption,
+                                           reply_markup=markup_inline, timeout=self.TIMEOUT)
         elif isinstance(new_post, GroupPost):
-            caption = None
-            medias = []
-            full = False
-            for post in new_post.content:
-                if isinstance(post, TextPost):
-                    caption = post.content
-                elif not full:
-                    if len(medias)>9:
-                        full = True
-                    elif isinstance(post, ImagePost):
-                        medias.append(types.InputMediaPhoto(post.content))
-                    elif isinstance(post, VideoPost):
-                        medias.append(types.InputMediaVideo(post.content))
-                    elif isinstance(post, DocPost):
-                        medias = [types.InputMediaDocument(post.content)]
-                        full = True
+            if not new_post.content:  # сгруппированное сообщение содержит только текст
+                sent = self.tgbot.send_message(received.chat.id, new_post.caption, timeout=self.TIMEOUT)
+            else:
+                medias = []
+                opened_files = []
+                for post in new_post.content:
+                    content = open(post.content, 'rb')
+                    if isinstance(post, DocPost):
+                        medias = [types.InputMediaDocument(content)]
+                        break
                     elif isinstance(post, AudioPost):
-                        medias= [types.InputMediaAudio(post.content)]
-                        full = True
-            print(medias)
-            if len(medias) > 0:
-                medias[0].caption = caption
-                sent = self.tgbot.send_media_group(received.chat.id, medias, timeout=30)[-1]
+                        medias= [types.InputMediaAudio(content)]
+                        break
+                    elif isinstance(post, ImagePost):
+                        medias.append(types.InputMediaPhoto(content))
+                    elif isinstance(post, VideoPost):
+                        medias.append(types.InputMediaVideo(content))
+                    opened_files.append(content)
+                medias[0].caption = new_post.caption
+                sent = self.tgbot.send_media_group(received.chat.id, medias, timeout=self.TIMEOUT)[-1]
+                for file in opened_files:
+                    file.close()
         else:
             sent = None
             print('хз')
         # сохраняем id последнего отправленного сообщения для конкретного пользователя и новый пост
-        for line in self.user_table:
-            user_id, last_post, last_message_id = line
+        for i, (user_id, last_post, last_message_id) in enumerate(self.user_table):
             if user_id == received.chat.id:
-                line[1], line[2] = new_post, sent.id
+                self.user_table[i] = (user_id, new_post, sent.id)
                 break
 
 

@@ -104,12 +104,26 @@ class MediaConverter:
         print(text)  # TODO: отправлять сообщением ботом
         return text
 
-    OGG = '.ogg'
     def convertToOgg(self, path):
         """Конвертирует файл в формат .ogg и возвращает путь до нового файла."""
-        if self.getFileExtension(path) != OGG:
-            new_filepath = os.path.splitext(path)[0] + self.OGG
-            process = subprocess.run([self.FFMPEG_PATH, '-i', path, '-acodec',
-                                      'libmp3lame', new_filepath])
-            path = new_filepath
-        return path
+        new_path, fmat = os.path.splitext(path)
+        new_path += '.ogg'
+        if fmat == '.mp3':
+            command = f'{self.FFMPEG_PATH} -loglevel quiet -i {path} -y -c:a libvorbis -q:a 4 {new_path}'
+        elif fmat == '.wav':
+            command = f'{self.FFMPEG_PATH} -loglevel quiet -i {path} -y -acodec libvorbis {new_path}'
+        else:
+            raise Exception(f'Не удалось преобразовать {path} к формату голосового сообщения.')
+        process = subprocess.run(command.split())
+        return new_path
+
+    def convertToMp3(self, path):
+        """Конвертирует файл в формат .mp3 и возвращает путь до нового файла."""
+        new_path, fmat = os.path.splitext(path)
+        new_path += '.mp3'
+        if fmat == '.wav' or fmat == '.ogg':
+            command = f'{self.FFMPEG_PATH} -loglevel quiet -i {path} -y -acodec libmp3lame {new_path}'
+        else:
+            raise Exception(f'Не удалось преобразовать {path} к формату .mp3.')
+        process = subprocess.run(command.split())
+        return new_path
