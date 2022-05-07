@@ -5,13 +5,13 @@ class Scene:
     """Класс сцены Telegram-бота"""
 
     def __init__(self, name, messages):
-        self.sceneMessages = messages.Copy()
+        self.sceneMessages = messages
         self.name = name
 
-    def getName():
+    def getName(self):
         return self.name
 
-    def getSceneMessages():
+    def getSceneMessages(self):
         return self.sceneMessages
 
 textFile = open("scenery.txt", "r", encoding='utf-8')
@@ -23,6 +23,11 @@ text = ""
 currentName = ""
 scenes = []
 currentScene = None
+
+def getSceneByName(sceneName):
+    for sc in scenes:
+        if sc.getName()==sceneName:
+            return sc
 
 # для группы
 groupMessageFlag = False
@@ -56,7 +61,7 @@ while True:
                 string = ""
                 break
             elif string == "конецГруппы":
-                elements.append(GroupMessage(groupMessage))
+                elements.append(GroupPost(groupMessage))
                 textFound = False
                 groupMessage = []
                 line = textFile.readline()
@@ -96,10 +101,10 @@ while True:
                 print("_____________")
                 if groupMessageFlag:
                     if not textFound:
-                        groupMessage.append(TextMessage(text))
+                        groupMessage.append(TextPost(text))
                         textFound = True
                 else:
-                    elements.append(TextMessage(text))
+                    elements.append(TextPost(text))
                 text = ""
                 line = textFile.readline()
                 string = ""
@@ -112,9 +117,9 @@ while True:
                     j += 1;
                 print(photo)
                 if groupMessageFlag:
-                    groupMessage.append(ImageMessage(photo))
+                    groupMessage.append(ImagePost(photo))
                 else:
-                    elements.append(ImageMessage(photo))
+                    elements.append(ImagePost(photo))
                 line = textFile.readline()
                 string = ""
                 break
@@ -125,7 +130,7 @@ while True:
                     voice += line[j]
                     j += 1;
                 print(voice)
-                elements.append(VoiceMessage(voice))
+                elements.append(VoicePost(voice))
                 line = textFile.readline()
                 string = ""
                 break
@@ -137,9 +142,9 @@ while True:
                     j += 1;
                 print(photo)
                 if groupMessageFlag:
-                    groupMessage.append(AudioMessage(audio))
+                    groupMessage.append(AudioPost(audio))
                 else:
-                    elements.append(AudioMessage(audio))
+                    elements.append(AudioPost(audio))
                 line = textFile.readline()
                 string = ""
                 break
@@ -151,9 +156,19 @@ while True:
                     j += 1;
                 print(photo)
                 if groupMessageFlag:
-                    groupMessage.append(VideoMessage(video))
+                    groupMessage.append(VideoPost(video))
                 else:
-                    elements.append(VideoMessage(video))
+                    elements.append(VideoPost(video))
+                line = textFile.readline()
+                string = ""
+                break
+            elif string == "кругл\"" or string == "кругл \"":
+                j = i + 1
+                video=""
+                while (line[j] != '\"'):
+                    video += line[j]
+                    j += 1;
+                elements.append(RoundPost(video))
                 line = textFile.readline()
                 string = ""
                 break
@@ -164,7 +179,7 @@ while True:
                     gif += line[j]
                     j += 1;
                 print(gif)
-                elements.append(GifMessage(gif))
+                elements.append(GifPost(gif))
                 line = textFile.readline()
                 string = ""
                 break
@@ -175,7 +190,7 @@ while True:
                     model += line[j]
                     j += 1;
                 print(model)
-                elements.append(ModelMessage(model))
+                elements.append(ModelPost(model))
                 line = textFile.readline()
                 string = ""
                 break
@@ -189,7 +204,7 @@ while True:
                 if groupMessageFlag:
                     groupMessage.append(DocMessage(doc))
                 else:
-                    elements.append(DocMessage(doc))
+                    elements.append(DocPost(doc))
                 line = textFile.readline()
                 string = ""
                 break
@@ -200,14 +215,49 @@ while True:
                     sticker += line[j]
                     j += 1;
                 print(sticker)
-                elements.append(StickerMessage(sticker))
+                elements.append(StickerPost(sticker))
                 line = textFile.readline()
+                string = ""
+                break
+            elif string == "кнопки\"" or string == "кнопки \"":
+                buttons = []
+                j = i + 1
+                while (line[j] != '\"'):
+                    text += line[j]
+                    j+=1;
+                    if (j==len(line)):
+                        #text += "\n"
+                        line = textFile.readline().replace('\t', '')
+                        j = 0
+                text = text.replace("\\t", "\t")
+                print("_____________")
+                print (text)
+                print("_____________")
+                while True:
+                    line = textFile.readline()
+                    line = line.replace("\t", "")                    
+                    if line.find("хватитКнопок")>-1:                        
+                        elements.append(ButtonsPost(text, buttons))
+                        line = textFile.readline()
+                        string = ""
+                        break
+                    #print(line)
+                    btnText, destination = line.split("--")
+                    btnText = btnText[1:len(btnText)-2]
+                    destination = destination[1:]
+                    if destination.find("\"")==-1:
+                        pass #TODO не имя сцены, а команда
+                    else:
+                        destination = destination[destination.index("\"")+1:destination.rindex("\"")]
+                    print(btnText, destination)
+                    btn = Button(btnText) #TODO сделать что-то с пунктом назначения 
+                    buttons.append(btn)                                        
                 string = ""
                 break
 
 allMessages = []
 for sc in scenes:
-    allMessages += sc.getSceneMessages
+    allMessages += sc.getSceneMessages()
 
 bot = Bot(token, allMessages)
 
