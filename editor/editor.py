@@ -1,6 +1,7 @@
 import wx  # pip install -U --pre -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython
 import wx.stc
 import codecs
+import code_analyzer
 
 
 class Editor(wx.stc.StyledTextCtrl):
@@ -12,18 +13,63 @@ class Editor(wx.stc.StyledTextCtrl):
             name = "editor"):
         wx.stc.StyledTextCtrl.__init__ (self, parent, id, pos, size, style, name)
 
-        # print(self.SetMarginWidth.__doc__)
+        # задаём боковую панель с номерами строк
+        # TODO: расширение панели
         self.SetMarginWidth(1, 40)
         self.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
+        self.SetMarginWidth(2, 10)
 
-        # Создаем кодировщик один раз в конструкторе,
+        # создаем кодировщик один раз в конструкторе,
         # чтобы не создавать его при каждой необходимости
         self.encoder = codecs.getencoder("utf-8")
 
-        # Стиль по умолчанию будет 14-ым шрифтом
+        # стиль по умолчанию будет 14-ым шрифтом
         self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT, "size:%d" % 14)
 
-        self.Bind(wx.stc.EVT_STC_UPDATEUI, self.onPosChange)
+        # задаём шрифты
+        # if wxPlatform == '__WXMSW__':
+        #     self.faces = { 'times': 'Times New Roman',
+        #                    'mono' : 'Courier New',
+        #                    'helv' : 'Arial',
+        #                    'other': 'Comic Sans MS',
+        #                    'size' : 10,
+        #                    'size2': 8,
+        #                  }
+        # else:
+        #     self.faces = { 'times': 'Times',
+        #                    'mono' : 'Courier',
+        #                    'helv' : 'Helvetica',
+        #                    'other': 'new century schoolbook',
+        #                    'size' : 12,
+        #                    'size2': 10,
+        #                  }
+
+        # определение стилей подсветки
+        self.style_def = 0
+        self.style_gray = 1
+        self.style_purple = 2
+        self.style_blue = 3
+        self.style_green = 4
+
+        print(self.StyleSetSpec.__doc__)
+        self.StyleSetSpec(self.style_def, "face:Consolas,size:14,fore:#000000")
+        self.StyleSetSpec(self.style_gray, "face:Consolas,size:14,fore:#888888")
+        self.StyleSetSpec(self.style_purple, "face:Consolas,size:14,fore:#C800C8,bold")
+        self.StyleSetSpec(self.style_blue, "face:Consolas,size:14,fore:#000096,bold")
+
+        # self.StyleSetSpec(self.style_blue, "face:Consolas,size:14,bold")
+        # self.StyleSetSpec(self.style_purple, "face:Consolas,size:14,fore:#000096,bold")
+
+        self.StyleSetSpec(self.style_green, "face:Consolas,size:14,fore:#009600,italic")
+
+        self.code_analyzer = code_analyzer.CodeAnalyzer()
+
+        # подписка на событие, когда нужно изменить стиль
+        self.Bind(wx.stc.EVT_STC_STYLENEEDED, self.onStyleNeed)
+
+        # self.SetViewWhiteSpace(1)
+        # self.SetWhitespaceSize(3)
+        # self.SetWhitespaceForeground(True, '#bbbbbb')
 
     def onPosChange (self, event):
         # Получим текущую позицию каретки в байтах
@@ -37,10 +83,72 @@ class Editor(wx.stc.StyledTextCtrl):
 
     def calcBytePos (self, text, pos):
         """Преобразовать позицию в символах в позицию в байтах"""
-        return len(self.encoder (text[: pos] )[0] )
+        return len(self.encoder(text[:pos])[0])
+
+    def onStyleNeed(self, event):
+        text = self.GetText()
+
+        # cначала ко всему тексту применим стиль по умолчанию
+        self.StartStyling(0)
+        self.SetStyling(self.calcByteLen(text), self.style_def)
+
+        # Раскрасим слова с использованием так называемых индикаторов
+        self.highlightCode()
+        # self.colorizeWord(u"кнопка", self.style_blue)
+        # self.colorizeWord(u"бот", self.style_purple)
+        # self.colorizeWord(u"строка", self.style_green)
+
+    def highlightCode(self):
+        """Подсветка синтаксиса."""
+        text = self.GetText()
+
+        analyzed = self.code_analyzer.get_words(text)
+
+        for word, line_number, last_pos, word_type in analyzed:
+            pos = last_pos-len(word)
+            bytepos = self.calcBytePos(text, pos)  # находим начальную позицию в байтах
+            text_byte_len = self.calcByteLen(word)  # вычисляем длину слова в байтах
+            # применяем стиль
+            self.StartStyling(bytepos)
+            if word_type == self.code_analyzer.STRING:
+                self.SetStyling(text_byte_len, self.style_green)
+            elif word_type == self.code_analyzer.COMMENT:
+                self.SetStyling(text_byte_len, self.style_gray)
+            elif word_type == self.code_analyzer.KEYWORD:
+                if word == self.code_analyzer.BOT or word == self.code_analyzer.BOT_END or\
+                   word == self.code_analyzer.SCENE or word == self.code_analyzer.SCENE_END:
+                    self.SetStyling(text_byte_len, self.style_purple)
+                else:
+                    self.SetStyling(text_byte_len, self.style_blue)
+
+        print(analyzed)
+
+    def colorizeWord(self, styled_text, style):
+        """Раскрасить в тексте все слова styled_text стилем style"""
+        text = self.GetText()
+
+        # Ищем все вхождения слова
+        pos = text.find (styled_text)      
+        while pos != -1:
+            nextsym = text[pos + len (styled_text): pos + len (styled_text) + 1]
+            prevsym = text[pos - 1: pos]
+
+            if (pos == 0 or prevsym.isspace()) and (pos == len (text) - len(styled_text) or nextsym.isspace()):
+
+                # Нас интересует позиция в байтах, а не в символах
+                bytepos = self.calcBytePos(text, pos)
+
+                # Находим длину искомой строки в байтах
+                text_byte_len = self.calcByteLen(styled_text)
+
+                # Применим стиль
+                self.StartStyling(bytepos)
+                self.SetStyling(text_byte_len, style)
+
+            pos = text.find (styled_text, pos + len (styled_text) )
 
 
-class EditorFrame(wx.Frame):
+class MainWindow(wx.Frame):
     """Класс окна редактора."""
     def __init__(self, parent, title):
         super().__init__(parent, title=title, style = wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE)
@@ -178,7 +286,7 @@ class EditorFrame(wx.Frame):
 
 app = wx.App()
 
-frame = EditorFrame(None, 'Редактор Telegram-ботов')
+frame = MainWindow(None, 'Редактор Telegram-ботов')
 frame.Show()
 
 app.MainLoop()
