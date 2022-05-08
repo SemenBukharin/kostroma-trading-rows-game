@@ -102,6 +102,7 @@ class MediaConverter:
             text = self.UNKNOWN
         os.remove(self.AUDIO_WAV)
         os.remove(audio_ogg)
+        
         print(text)  # TODO: отправлять сообщением ботом
         return text
 

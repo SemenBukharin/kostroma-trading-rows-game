@@ -31,7 +31,6 @@ class Bot:
         @self.tgbot.message_handler(content_types=['text'])
         def handle_text(message):
             """Обрабатывает текстовые сообщения от игрока."""
-            # TODO: в одну функцию
             post = None
             for user_id, last_post, _ in self.user_table:
                 if user_id == message.from_user.id:
@@ -67,9 +66,9 @@ class Bot:
             mc = media_converter.MediaConverter()
             text = mc.voiceToText(AUDIO_OGG)
             if text == mc.UNKNOWN:
-                self.send(received=message, new_post=TextPost('🙁 Извините, я не понял, что вы сказали'))
+                self.tgbot.send_message(message.chat.id, '🙁 Извините, я не понял, что вы сказали', timeout=self.TIMEOUT)
             else:
-                self.send(received=message, new_post=TextPost(f'😊 Кажется, вы сказали: {text}'))
+                self.tgbot.send_message(message.chat.id, f'😊 Кажется, вы сказали: {text}', timeout=self.TIMEOUT)
             while True:
                 post = post.get_next(text)  # получаем новые сообщения для отправки
                 if post is None:

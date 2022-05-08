@@ -3,7 +3,7 @@ import random
 import string
 import media_converter
 import os
-
+import morpheme
 
 class Post(ABC):
     """Класс поста."""
@@ -17,6 +17,7 @@ class Post(ABC):
         self.content = content
         self.transitions = []  # список функций, возвращающих следующий пост при выполнении
                                # некоторого условия
+        self.morph = morpheme.StringsAnalyser()  # анализатор для поиска ключевых слов в строке
 
     def add_next(self, next_post, requiered_callback=SEND_IMMEDIATELY, is_keyword=False):
         """Добавить переход на пост.
@@ -37,12 +38,7 @@ class Post(ABC):
             if received is None:
                 # ответа от игрока не получено - ничего не возвращаем
                 return None
-            if is_keyword:
-                # пост нужно отправить, если полученное от игрока сообщение содержит
-                # ключевое слово
-                pass  # TODO: реализовать поиск ключевых слов в строке
-            if received.lower() == requiered_callback.lower():
-                # полученное сообщение совпало с ожидаемым
+            if self.morph.check(received, requiered_callback, is_keyword):
                 return next_post
         self.transitions.append(transition)
 
@@ -311,7 +307,7 @@ def get_sample_script():  # возвращает пример сценария
     post3.add_next(next_post=post1)
     post5.add_next(next_post=post1)
 
-    post6.add_next(next_post=post14, requiered_callback='до свидания')
+    post6.add_next(next_post=post14, requiered_callback='триста задним', is_keyword=True)
 
     # post6.add_next(next_post=AudioPost('48a.mp3'))
 
