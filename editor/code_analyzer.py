@@ -56,9 +56,13 @@ class CodeAnalyzer():
         # добавление отступа при переходе на новую строку
         if last_symbol == self.NEWLINE:
             # ищем последнюю введённую строку
-            # удаляем перевод строки из конца кода
-            code_without_last_rn = code[::-1].replace(self.NEWLINE[::-1], '', 1)[::-1]
-            last_line_start_idx = code_without_last_rn[::-1].find(self.NEWLINE[::-1])
+            newline_start_idxs = [_.start() for _ in re.finditer(self.NEWLINE, code)]
+            line_end = newline_start_idxs[-1]+len(self.NEWLINE)
+            if len(newline_start_idxs)>1:
+                line_start = newline_start_idxs[-2]+len(self.NEWLINE)
+            else:
+                line_start = 0
+            print([ch for ch in code[line_start:line_end+1]])
         return completion
         #     # ищем начало последней введённой строки
         #     line_start_idx = code[len(code)-len(self.NEWLINE)::-1].find(self.NEWLINE[::-1])
@@ -98,6 +102,7 @@ class CodeAnalyzer():
                 result.append((word, line_number, word_type))
         return result
 
+    # TODO: разные виды конца строки
 
     def get_words(self, code):
         # # заменяем таб на 4 пробела
