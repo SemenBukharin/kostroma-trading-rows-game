@@ -36,7 +36,7 @@ class CodeAnalyzer():
     EXCLAM = '!'
     QUOTE = '"'
     # CARRIAGE_RETURN = '\r'
-    NEWLINE = '\r\n'
+    NEWLINE = '\n'
     SPACE = ' '
 
     # ключевые слова
