@@ -1,6 +1,6 @@
-# Blender v3.1.2 OBJ File: ''
+# Blender v3.1.2 OBJ File: 'untitled.blend'
 # www.blender.org
-mtllib RedRows.mtl
+mtllib RedRowsTextured.mtl
 o Красные_ряды_2
 v -56.422050 -3.469199 68.855507
 v -56.422050 -4.469199 68.855507
@@ -46079,7 +46079,6 @@ vn -0.6088 0.7934 0.0000
 vn -0.9239 0.3827 0.0000
 vn 0.0000 0.7934 -0.6088
 vn 0.0000 0.3827 -0.9239
-g Красные_ряды_2_Красные_ряды_2_Material.001
 usemtl Material.001
 s 1
 f 1/1/1 2/2/1 3/3/1
