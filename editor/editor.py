@@ -10,7 +10,7 @@ class Editor(wx.stc.StyledTextCtrl):
             pos = wx.DefaultPosition, \
             size = wx.DefaultSize,\
             style = 0,\
-            name = "editor"):
+            name = 'editor'):
         wx.stc.StyledTextCtrl.__init__ (self, parent, id, pos, size, style, name)
 
         # задаём боковую панель с номерами строк
@@ -21,10 +21,10 @@ class Editor(wx.stc.StyledTextCtrl):
 
         # создаем кодировщик один раз в конструкторе,
         # чтобы не создавать его при каждой необходимости
-        self.encoder = codecs.getencoder("utf-8")
+        self.encoder = codecs.getencoder('utf-8')
 
         # стиль по умолчанию
-        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT, "size:%d" % 12)
+        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT, 'size:%d' % 12)
 
         # определение стилей подсветки
         self.style_def = 0
@@ -48,26 +48,78 @@ class Editor(wx.stc.StyledTextCtrl):
         self.analyzed = None  # список кортежей с результатом анализа текста
 
         # подписка на событие "Добавление символа"
-        # self.Bind (wx.stc.EVT_STC_CHARADDED, self.onCharAdded)
+        self.Bind(wx.stc.EVT_STC_CHARADDED, self.onCharAdded)
+
+        # заменяем табы на пробелы
+        self.SetIndent(self.code_analyzer.INDENT_SPACE_COUNT)
+        self.SetUseTabs(False)
 
 
     def onCharAdded(self, event):
+        # # получим код нажатой клавиши
+        # key_val = event.GetKey()
+
+        #  # нас не интересуют нажатые клавиши с кодом больше 127
+        # if key_val>127:
+        #     return
+
+        # # получим символ нажатой клавиши
+        # key = chr(key_val)
+
+        # if key == self.code_analyzer.QUOTE:
+        #     pos = self.GetCurrentPos()
+        #     # дописываем закрывающуюся кавычку
+        #     self.AddText(self.code_analyzer.QUOTE)
+        #     # установим каретку перед закрывающейся кавычкой
+        #     self.GotoPos(pos)
         # получим код нажатой клавиши
         key_val = event.GetKey()
 
          # нас не интересуют нажатые клавиши с кодом больше 127
-        if key_val>127:
-            return
+        # if key_val>127:
+        #     return
 
         # получим символ нажатой клавиши
         key = chr(key_val)
 
-        if key == self.code_analyzer.QUOTE:
-            pos = self.GetCurrentPos()
-            # дописываем закрывающуюся кавычку
-            self.AddText(self.code_analyzer.QUOTE)
-            # установим каретку перед закрывающейся кавычкой
-            self.GotoPos(pos)
+        print([key])
+
+        text = self.GetText()
+
+        if key == '\t':
+            pos = self.GetCurrentPos()-1
+            bytepos = self.calcBytePos(text, pos)  # находим позицию начала слова в байтах
+            text_byte_len = self.calcByteLen(key)  # вычисляем длину слова в байтах
+            self.Replace(bytepos, bytepos+text_byte_len, 
+                         self.code_analyzer.SPACE*self.code_analyzer.INDENT_SPACE_COUNT)
+
+        # completion = ''
+        # # добавление отступа при переходе на новую строку
+        # if last_symbol == self.NEWLINE and last_line_number:
+        #     # ищем последнюю введённую строку
+        #     newline_start_idxs = [_.start() for _ in re.finditer(self.NEWLINE, code)]
+        #     line_end = newline_start_idxs[-1]+len(self.NEWLINE)
+        #     if len(newline_start_idxs)>1:
+        #         line_start = newline_start_idxs[-2]+len(self.NEWLINE)
+        #     else:
+        #         line_start = 0
+        #     last_line = code[line_start:line_end+1]
+        #     # считаем количество пробелов в начале последней строки
+        #     space_count = 0
+        #     for symbol in last_line:
+        #         if symbol == self.SPACE:
+        #             space_count += 1
+        #         else:
+        #             break
+        #     # добавляем на следующую строку такое же количество пробелов
+        #     if space_count % self.INDENT_SPACE_COUNT == 0:
+        #         completion += self.SPACE * space_count
+        #     if analyzed:
+        #         word, line_number, _, word_type = analyzed[-1]
+        #         if word_type == self.KEYWORD and word == self.COLON and line_number == last_line_number-1:
+        #             # если пользователь ввёл двоеточие и нажал на Enter,
+        #             # отступ на следующей строке увеличивается
+        #             completion += self.SPACE * self.INDENT_SPACE_COUNT
 
 
     def onPosChange (self, event):
@@ -118,9 +170,7 @@ class Editor(wx.stc.StyledTextCtrl):
                 else:
                     self.SetStyling(text_byte_len, self.style_blue)
 
-        self.analyzed = self.code_analyzer.get_words_for_parsing(analyzed)
-        # print(analyzed)
-        # print(self.code_analyzer.get_words_for_parsing(analyzed))
+        self.analyzed = analyzed
 
 
 class MainWindow(wx.Frame):
@@ -174,27 +224,6 @@ class MainWindow(wx.Frame):
         self.edit_bs = wx.BoxSizer()
         self.edit_bs.Add(self.editor, wx.ID_ANY, flag=wx.EXPAND)
         self.edit_p.SetSizer(self.edit_bs)
-        # scenes_header_p = wx.Panel(sidebar_p)
-        # scenes_header_st = wx.StaticText(scenes_header_p, label='Сцены:')
-        # scenes_header_b = wx.Button(scenes_header_p, label='+', style=wx.BU_EXACTFIT)
-        # scenes_header_bs = wx.BoxSizer(wx.HORIZONTAL)
-        # scenes_header_bs.Add(scenes_header_st)
-        # scenes_header_bs.Add(wx.StaticText(scenes_header_p), flag=wx.EXPAND)
-        # scenes_header_bs.Add(scenes_header_b)
-
-        # scenes_lb = wx.ListBox(sidebar_p, choices=self.get_scenes_names())
-
-        # sidebar_bs = wx.BoxSizer(wx.VERTICAL)
-        # sidebar_bs.Add(scenes_header_p, flag=wx.EXPAND | wx.ALL, border=10)
-        # sidebar_bs.Add(wx.StaticLine(sidebar_p), flag=wx.EXPAND | wx.ALL, border=10)
-        # sidebar_bs.Add(scenes_lb, flag=wx.EXPAND | wx.ALL, border=10)
-
-        # edit_tc = wx.TextCtrl(main_p, style=wx.TE_MULTILINE)
-
-        # sidebar_bs.Add(edit, proportion=1)
-        # scenes_header_p.SetSizer(scenes_header_bs)
-        # sidebar_p.SetSizer(sidebar_bs)
-
 
 
     def createMenuBar(self):
@@ -247,8 +276,9 @@ class MainWindow(wx.Frame):
         pass
 
     def onStartClick(self, event):
-        print('Собираем бота...')
-        analyzed = self.editor.analyzed
+        self.code_analyzer = code_analyzer.CodeAnalyzer()
+        words_for_parsing = self.code_analyzer.get_words_for_parsing(self.editor.analyzed)
+        print(words_for_parsing)
         pass
 
     def onStopClick(self, event):

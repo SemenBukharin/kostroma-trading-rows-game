@@ -54,7 +54,7 @@ class CodeAnalyzer():
     def autocomplete(self, code, analyzed, last_symbol, last_line_number):
         completion = ''
         # добавление отступа при переходе на новую строку
-        if last_symbol == self.NEWLINE:
+        if last_symbol == self.NEWLINE and last_line_number:
             # ищем последнюю введённую строку
             newline_start_idxs = [_.start() for _ in re.finditer(self.NEWLINE, code)]
             line_end = newline_start_idxs[-1]+len(self.NEWLINE)
@@ -62,30 +62,24 @@ class CodeAnalyzer():
                 line_start = newline_start_idxs[-2]+len(self.NEWLINE)
             else:
                 line_start = 0
-            print([ch for ch in code[line_start:line_end+1]])
+            last_line = code[line_start:line_end+1]
+            # считаем количество пробелов в начале последней строки
+            space_count = 0
+            for symbol in last_line:
+                if symbol == self.SPACE:
+                    space_count += 1
+                else:
+                    break
+            # добавляем на следующую строку такое же количество пробелов
+            if space_count % self.INDENT_SPACE_COUNT == 0:
+                completion += self.SPACE * space_count
+            if analyzed:
+                word, line_number, _, word_type = analyzed[-1]
+                if word_type == self.KEYWORD and word == self.COLON and line_number == last_line_number-1:
+                    # если пользователь ввёл двоеточие и нажал на Enter,
+                    # отступ на следующей строке увеличивается
+                    completion += self.SPACE * self.INDENT_SPACE_COUNT
         return completion
-        #     # ищем начало последней введённой строки
-        #     line_start_idx = code[len(code)-len(self.NEWLINE)::-1].find(self.NEWLINE[::-1])
-        #     if line_start_idx == -1:
-        #         # мы переходим с первой строки на вторую
-        #         line_start_idx = 0
-        #     # else:
-        #     #     line_start_idx += 1
-        #     line = code[line_start_idx:]
-        #     print([ch for ch in line])
-        #     space_count = 0
-        #     for symbol in line:
-        #         if symbol == self.SPACE:
-        #             space_count += 1
-        #         else:
-        #             break
-        #     if space_count % self.INDENT_SPACE_COUNT == 0:
-        #         if word_type == self.KEYWORD and word == self.COLON and last_line_number-line_number == 1:
-        #             # если пользователь ввёл двоеточие и нажал на Enter,
-        #             # отступ на следующей строке увеличивается
-        #             space_count += self.INDENT_SPACE_COUNT
-        #         completion += self.SPACE * space_count
-        # return completion
 
 
     def get_words_for_parsing(self, analyzed):
