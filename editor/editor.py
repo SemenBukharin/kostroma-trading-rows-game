@@ -23,26 +23,8 @@ class Editor(wx.stc.StyledTextCtrl):
         # чтобы не создавать его при каждой необходимости
         self.encoder = codecs.getencoder("utf-8")
 
-        # стиль по умолчанию будет 14-ым шрифтом
+        # стиль по умолчанию
         self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT, "size:%d" % 12)
-
-        # задаём шрифты
-        # if wxPlatform == '__WXMSW__':
-        #     self.faces = { 'times': 'Times New Roman',
-        #                    'mono' : 'Courier New',
-        #                    'helv' : 'Arial',
-        #                    'other': 'Comic Sans MS',
-        #                    'size' : 10,
-        #                    'size2': 8,
-        #                  }
-        # else:
-        #     self.faces = { 'times': 'Times',
-        #                    'mono' : 'Courier',
-        #                    'helv' : 'Helvetica',
-        #                    'other': 'new century schoolbook',
-        #                    'size' : 12,
-        #                    'size2': 10,
-        #                  }
 
         # определение стилей подсветки
         self.style_def = 0
@@ -51,6 +33,7 @@ class Editor(wx.stc.StyledTextCtrl):
         self.style_blue = 3
         self.style_green = 4
 
+        # стили для текста в поле ввода
         self.StyleSetSpec(self.style_def, "face:Consolas,size:12,fore:#000000")
         self.StyleSetSpec(self.style_gray, "face:Consolas,size:12,fore:#888888")
         self.StyleSetSpec(self.style_purple, "face:Consolas,size:12,fore:#C800C8,bold")
@@ -62,38 +45,59 @@ class Editor(wx.stc.StyledTextCtrl):
         # подписка на событие, когда нужно изменить стиль
         self.Bind(wx.stc.EVT_STC_STYLENEEDED, self.onStyleNeed)
 
+        # подписка на событие "Добавление символа"
+        # self.Bind (wx.stc.EVT_STC_CHARADDED, self.onCharAdded)
+
+
+    def onCharAdded(self, event):
+        # получим код нажатой клавиши
+        key_val = event.GetKey()
+
+         # нас не интересуют нажатые клавиши с кодом больше 127
+        if key_val>127:
+            return
+
+        # получим символ нажатой клавиши
+        key = chr(key_val)
+
+        if key == self.code_analyzer.QUOTE:
+            pos = self.GetCurrentPos()
+            # дописываем закрывающуюся кавычку
+            self.AddText(self.code_analyzer.QUOTE)
+            # установим каретку перед закрывающейся кавычкой
+            self.GotoPos(pos)
+
+
     def onPosChange (self, event):
         # Получим текущую позицию каретки в байтах
         pos = self.GetCurrentPos()
         text_left = self.GetTextRange(0, pos)
         self.GetParent().GetParent().GetParent().SetTitle(str (len (text_left) ) )
 
+
     def calcByteLen(self, text):
         """Посчитать длину строки в байтах, а не в символах"""
         return len(self.encoder(text)[0])
 
-    def calcBytePos (self, text, pos):
+
+    def calcBytePos(self, text, pos):
         """Преобразовать позицию в символах в позицию в байтах"""
         return len(self.encoder(text[:pos])[0])
 
+
     def onStyleNeed(self, event):
+        """Подсветка синтаксиса."""
         text = self.GetText()
 
         # cначала ко всему тексту применим стиль по умолчанию
         self.StartStyling(0)
         self.SetStyling(self.calcByteLen(text), self.style_def)
 
-        # Раскрасим слова с использованием так называемых индикаторов
-        self.highlightCode()
-        # self.colorizeWord(u"кнопка", self.style_blue)
-        # self.colorizeWord(u"бот", self.style_purple)
-        # self.colorizeWord(u"строка", self.style_green)
+        analyzed, completion = self.code_analyzer.get_words(text)
 
-    def highlightCode(self):
-        """Подсветка синтаксиса."""
-        text = self.GetText()
-
-        analyzed = self.code_analyzer.get_words(text)
+        if completion:
+            self.AddText(completion)
+        # self.SetCurrentPos(len(completed_code))
 
         for word, line_number, last_pos, word_type in analyzed:
             pos = last_pos-len(word)
@@ -113,31 +117,7 @@ class Editor(wx.stc.StyledTextCtrl):
                     self.SetStyling(text_byte_len, self.style_blue)
 
         # print(analyzed)
-        print(self.code_analyzer.get_words_for_parsing(analyzed))
-
-    def colorizeWord(self, styled_text, style):
-        """Раскрасить в тексте все слова styled_text стилем style"""
-        text = self.GetText()
-
-        # Ищем все вхождения слова
-        pos = text.find (styled_text)      
-        while pos != -1:
-            nextsym = text[pos + len (styled_text): pos + len (styled_text) + 1]
-            prevsym = text[pos - 1: pos]
-
-            if (pos == 0 or prevsym.isspace()) and (pos == len (text) - len(styled_text) or nextsym.isspace()):
-
-                # Нас интересует позиция в байтах, а не в символах
-                bytepos = self.calcBytePos(text, pos)
-
-                # Находим длину искомой строки в байтах
-                text_byte_len = self.calcByteLen(styled_text)
-
-                # Применим стиль
-                self.StartStyling(bytepos)
-                self.SetStyling(text_byte_len, style)
-
-            pos = text.find (styled_text, pos + len (styled_text) )
+        # print(self.code_analyzer.get_words_for_parsing(analyzed))
 
 
 class MainWindow(wx.Frame):
