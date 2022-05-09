@@ -48,10 +48,22 @@ class CodeAnalyzer():
     def autocomplete(self, text):
         pass
 
-    def get_words(self, code):
-        # TODO: спецсимволы (\t\n)
-        # TODO: убирать \r\n внутри кавычек
+    def get_words_for_parsing(self, analyzed):
+        """Принимает на вход список кортежей, сгенерированный функцией get_words, возвращает список
+        кортежей для парсинга."""
+        result = []  # список кортежей вида (слово, номер_строки, тип (строка или ключевое слово))
+        for word, line_number, _, word_type in analyzed:
+            if word_type == self.STRING:
+                # убираем символы \r\n из строки и лишнее экранирования для табов и переводов строк
+                word = word.replace(self.NEWLINE, '')\
+                           .replace('\\t', '\t')\
+                           .replace('\\n', '\n')
+            if word_type != self.COMMENT:
+                result.append((word, line_number, word_type))
+        return result
 
+
+    def get_words(self, code):
         # # заменяем таб на 4 пробела
         # if text.endswith('\t'):
         #     text[-1] = ' '*4

@@ -24,7 +24,7 @@ class Editor(wx.stc.StyledTextCtrl):
         self.encoder = codecs.getencoder("utf-8")
 
         # стиль по умолчанию будет 14-ым шрифтом
-        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT, "size:%d" % 14)
+        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT, "size:%d" % 12)
 
         # задаём шрифты
         # if wxPlatform == '__WXMSW__':
@@ -51,25 +51,16 @@ class Editor(wx.stc.StyledTextCtrl):
         self.style_blue = 3
         self.style_green = 4
 
-        print(self.StyleSetSpec.__doc__)
-        self.StyleSetSpec(self.style_def, "face:Consolas,size:14,fore:#000000")
-        self.StyleSetSpec(self.style_gray, "face:Consolas,size:14,fore:#888888")
-        self.StyleSetSpec(self.style_purple, "face:Consolas,size:14,fore:#C800C8,bold")
-        self.StyleSetSpec(self.style_blue, "face:Consolas,size:14,fore:#000096,bold")
-
-        # self.StyleSetSpec(self.style_blue, "face:Consolas,size:14,bold")
-        # self.StyleSetSpec(self.style_purple, "face:Consolas,size:14,fore:#000096,bold")
-
-        self.StyleSetSpec(self.style_green, "face:Consolas,size:14,fore:#009600,italic")
+        self.StyleSetSpec(self.style_def, "face:Consolas,size:12,fore:#000000")
+        self.StyleSetSpec(self.style_gray, "face:Consolas,size:12,fore:#888888")
+        self.StyleSetSpec(self.style_purple, "face:Consolas,size:12,fore:#C800C8,bold")
+        self.StyleSetSpec(self.style_blue, "face:Consolas,size:12,fore:#000096,bold")
+        self.StyleSetSpec(self.style_green, "face:Consolas,size:12,fore:#009600,italic")
 
         self.code_analyzer = code_analyzer.CodeAnalyzer()
 
         # подписка на событие, когда нужно изменить стиль
         self.Bind(wx.stc.EVT_STC_STYLENEEDED, self.onStyleNeed)
-
-        # self.SetViewWhiteSpace(1)
-        # self.SetWhitespaceSize(3)
-        # self.SetWhitespaceForeground(True, '#bbbbbb')
 
     def onPosChange (self, event):
         # Получим текущую позицию каретки в байтах
@@ -121,7 +112,8 @@ class Editor(wx.stc.StyledTextCtrl):
                 else:
                     self.SetStyling(text_byte_len, self.style_blue)
 
-        print(analyzed)
+        # print(analyzed)
+        print(self.code_analyzer.get_words_for_parsing(analyzed))
 
     def colorizeWord(self, styled_text, style):
         """Раскрасить в тексте все слова styled_text стилем style"""
