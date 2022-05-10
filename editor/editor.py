@@ -278,7 +278,7 @@ class MainWindow(wx.Frame):
     def onStartClick(self, event):
         self.code_analyzer = code_analyzer.CodeAnalyzer()
         words_for_parsing = self.code_analyzer.get_words_for_parsing(self.editor.analyzed)
-        print(words_for_parsing)
+        #print(words_for_parsing)
         pass
 
     def onStopClick(self, event):
@@ -289,6 +289,10 @@ class MainWindow(wx.Frame):
 
     def onHelpClick(self, event):
         pass
+    
+    def getWordsForParsing(self):
+        words_for_parsing = self.code_analyzer.get_words_for_parsing(self.editor.analyzed)
+        return words_for_parsing
 
 app = wx.App()
 

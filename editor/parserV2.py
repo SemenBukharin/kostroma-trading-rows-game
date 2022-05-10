@@ -1,14 +1,26 @@
 # -*- coding: utf-8 -*-
 import code_analyzer
 
-allText = ""
-with open("scenery.txt", "r", encoding='utf-8') as file:
-    allText = file.read()
-    print(allText)
-    
-analyzer = code_analyzer.CodeAnalyzer()
-analyzed = analyzer.get_words(allText)[0]
-print(len(analyzed))
-krtForParsing = analyzer.get_words_for_parsing(analyzed)
-print(len(krtForParsing))
+from editor import * 
+import wx  # pip install -U --pre -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython
+import wx.stc
+import codecs
+import cv2
+
+app = wx.App()
+
+frame = MainWindow(None, 'Редактор Telegram-ботов')
+frame.Show()
+
+app.MainLoop()
+
+cv2.waitKey()
+
+krtForParsing = frame.getWordsForParsing()
+
+#allText = ""
+#with open("scenery.txt", "r", encoding='utf-8') as file:
+#   allText = file.read()
+#   print(allText)
+
 print(krtForParsing)
