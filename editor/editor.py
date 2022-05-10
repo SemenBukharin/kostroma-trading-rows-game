@@ -277,7 +277,10 @@ class MainWindow(wx.Frame):
 
     def onStartClick(self, event):
         self.code_analyzer = code_analyzer.CodeAnalyzer()
-        words_for_parsing = self.code_analyzer.get_words_for_parsing(self.editor.analyzed)
+        if self.editor.analyzed:
+            words_for_parsing = self.code_analyzer.get_words_for_parsing(self.editor.analyzed)
+        else:
+            words_for_parsing = []
         print(words_for_parsing)
         pass
 
