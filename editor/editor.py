@@ -2,7 +2,7 @@ import wx  # pip install -U --pre -f https://wxpython.org/Phoenix/snapshot-build
 import wx.stc
 import codecs
 import code_analyzer
-
+import parserV2
 
 class Editor(wx.stc.StyledTextCtrl):
     """Класс текстового поля редактора."""
@@ -279,9 +279,10 @@ class MainWindow(wx.Frame):
         self.code_analyzer = code_analyzer.CodeAnalyzer()
         if self.editor.analyzed:
             words_for_parsing = self.code_analyzer.get_words_for_parsing(self.editor.analyzed)
+            parserV2.getScenery(words_for_parsing)
         else:
             words_for_parsing = []
-        print(words_for_parsing)
+        print(words_for_parsing)        
         pass
 
     def onStopClick(self, event):
@@ -292,6 +293,10 @@ class MainWindow(wx.Frame):
 
     def onHelpClick(self, event):
         pass
+    
+    def getWordsForParsing(self):
+        words_for_parsing = self.code_analyzer.get_words_for_parsing(self.editor.analyzed)
+        return words_for_parsing
 
 app = wx.App()
 
