@@ -164,11 +164,12 @@ class MainWindow(wx.Frame):
         return True
 
 
-    def updateUI(self):
+    def updateUI(self, update_code=True):
         """Изменяет интерфейс в соответствии с открытым проектом."""
         # записываем сохранённый код в поле ввода
-        self.editor.ClearAll()
-        self.editor.AddText(self.project.get_code())
+        if update_code:
+            self.editor.ClearAll()
+            self.editor.AddText(self.project.get_code())
         self.SetTitle(f'{self.app_name} - {self.project.name}')
         self.save_changes_md.SetTitle(self.project.name)
         # выводим названия файлов с ресурсами в листбокс
@@ -176,8 +177,6 @@ class MainWindow(wx.Frame):
             self.res_lb.Delete(0)
         fnames = self.project.get_resources_names()
         self.res_lb.InsertItems(fnames, 0)
-        # TODO: установка сцен
-        # TODO: установка ресурсов
 
 
     def onCreateClick(self, event):
@@ -277,7 +276,7 @@ class MainWindow(wx.Frame):
             fnames = self.add_res_fd.GetPaths()
             for fname in fnames:
                 self.project.add_res(fname)
-            self.updateUI()
+            self.updateUI(False)
 
     def remove_res(self, event):
         if not self.project is None:
@@ -285,7 +284,7 @@ class MainWindow(wx.Frame):
             for item in items_for_removing:
                 path = self.res_lb.GetString(item)
                 self.project.remove_res(path)
-            self.updateUI()
+            self.updateUI(False)
 
 
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from code_analyzer import *
 from bot_message import *
+import bot
 import os.path
 
 class Scene:
@@ -17,7 +18,8 @@ class Scene:
     def getSceneMessages(self):
         return self.sceneMessages
 
-def getScenery(words, resPath):    
+
+def getScenery(words, resPath):
     elements = []
     token = ""
     text = ""
@@ -39,13 +41,14 @@ def getScenery(words, resPath):
     textFound = False
     groupMessage = []
     
+    print('=== НАЧИНАЕМ СБОРКУ ПРОЕКТА... ===')
     ind = 0 # индекс текущего кортежа
     while True:
         if words[ind][0]==CodeAnalyzer.BOT and words[ind][2]==CodeAnalyzer.KEYWORD:
             ind += 1
             if words[ind][2]==CodeAnalyzer.STRING:
                 token = words[ind][0][1:len(words[ind][0])-1]
-                print(token) 
+                # print(token) 
                 ind += 1
                 if not words[ind][0]==CodeAnalyzer.COLON:
                     raise Exception(f'Ожидилось ключевое слово {CodeAnalyzer.COLON} . Строка {words[ind-1][1]}')
@@ -59,7 +62,7 @@ def getScenery(words, resPath):
             ind += 1
             if words[ind][2]==CodeAnalyzer.STRING:
                currentSceneName =  words[ind][0][1:len(words[ind][0])-1]
-               print(currentSceneName)
+               # print(currentSceneName)
                ind += 1
                if not words[ind][0]==CodeAnalyzer.COLON:
                    raise Exception(f'Ожидилось ключевое слово {CodeAnalyzer.COLON} . Строка {words[ind-1][1]}')
@@ -70,7 +73,7 @@ def getScenery(words, resPath):
         elif words[ind][0]==CodeAnalyzer.SCENE_END and words[ind][2]==CodeAnalyzer.KEYWORD:
             scenes.append(Scene(currentSceneName, elements, waitSomething))
             elements = []
-            print (waitSomething)
+            # print(waitSomething)
             waitSomething = []
             currentName = ""
             ind += 1
@@ -86,7 +89,7 @@ def getScenery(words, resPath):
                        raise Exception(f'В текущей группе уже есть текст! Строка {words[ind-1][1]}')
                 else:
                    elements.append(el)
-                print("текст "+words[ind][0][1:len(words[ind][0])-1])
+                # print("текст "+words[ind][0][1:len(words[ind][0])-1])
                 ind += 1
             else:
                  raise Exception(f'Ожидилась строка(и) в кавычках после ключевого слова {CodeAnalyzer.TEXT}. Строка {words[ind-1][1]}')
@@ -98,7 +101,7 @@ def getScenery(words, resPath):
                     groupMessage.append(el)
                 else:
                     elements.append(el)
-                print(words[ind][0][1:len(words[ind][0])-1])
+                # print(words[ind][0][1:len(words[ind][0])-1])
                 ind += 1                
             else:
                 if words[ind][2]==CodeAnalyzer.KEYWORD:
@@ -109,7 +112,7 @@ def getScenery(words, resPath):
             ind += 1
             if os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
                 elements.append(VoicePost(resPath+words[ind][0][1:len(words[ind][0])-1]))
-                print(words[ind][0][1:len(words[ind][0])-1])
+                # print(words[ind][0][1:len(words[ind][0])-1])
                 ind += 1
             else:
                 if words[ind][2]==CodeAnalyzer.KEYWORD:
@@ -124,7 +127,7 @@ def getScenery(words, resPath):
                     groupMessage.append(el)
                 else:
                     elements.append(el)
-                print(words[ind][0][1:len(words[ind][0])-1])
+                # print(words[ind][0][1:len(words[ind][0])-1])
                 ind += 1
             else:
                 if words[ind][2]==CodeAnalyzer.KEYWORD:
@@ -139,7 +142,7 @@ def getScenery(words, resPath):
                     groupMessage.append(el)
                 else:
                     elements.append(el)
-                print(words[ind][0][1:len(words[ind][0])-1])
+                # print(words[ind][0][1:len(words[ind][0])-1])
                 ind += 1
             else:
                 if words[ind][2]==CodeAnalyzer.KEYWORD:
@@ -151,7 +154,7 @@ def getScenery(words, resPath):
              if os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
                  el = RoundPost(resPath+words[ind][0][1:len(words[ind][0])-1])
                  elements.append(el)
-                 print("Круг "+words[ind][0][1:len(words[ind][0])-1])
+                 # print("Круг "+words[ind][0][1:len(words[ind][0])-1])
                  ind += 1
              else:
                  if words[ind][2]==CodeAnalyzer.KEYWORD:
@@ -162,7 +165,7 @@ def getScenery(words, resPath):
             ind += 1
             if os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
                 elements.append(GifPost(resPath+words[ind][0][1:len(words[ind][0])-1]))
-                print(words[ind][0][1:len(words[ind][0])-1])
+                # print(words[ind][0][1:len(words[ind][0])-1])
                 ind += 1
             else:
                 if words[ind][2]==CodeAnalyzer.KEYWORD:
@@ -177,7 +180,7 @@ def getScenery(words, resPath):
                     groupMessage.append(el)
                 else:
                     elements.append(el)
-                print(words[ind][0][1:len(words[ind][0])-1])
+                # print(words[ind][0][1:len(words[ind][0])-1])
                 ind += 1
             else:
                 if words[ind][2]==CodeAnalyzer.KEYWORD:
@@ -188,7 +191,7 @@ def getScenery(words, resPath):
             ind += 1
             if os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
                 elements.append(StickerPost(resPath+words[ind][0][1:len(words[ind][0])-1]))
-                print(words[ind][0][1:len(words[ind][0])-1])
+                # print(words[ind][0][1:len(words[ind][0])-1])
                 ind += 1
             else:
                 if words[ind][2]==CodeAnalyzer.KEYWORD:
@@ -198,7 +201,7 @@ def getScenery(words, resPath):
         elif words[ind][0]==CodeAnalyzer.GROUP and words[ind][2]==CodeAnalyzer.KEYWORD:
             ind += 1
             groupMessageFlag = True
-            print("Группа найдена!")
+            # print("Группа найдена!")
             if words[ind][0]!=CodeAnalyzer.COLON:
                 raise Exception(f'Ожидилось ключевое слово {CodeAnalyzer.COLON} . Строка {words[ind-1][1]}')
             else:
@@ -218,7 +221,8 @@ def getScenery(words, resPath):
                 if groupMessageFlag:
                    raise Exception(f'Кнопки не могут входить в группу! Строка {words[ind-1][1]}')
                 else:
-                   print(buttonsDescription)
+                    pass
+                   # print(buttonsDescription)
                 ind += 1
                 if not words[ind][0]==CodeAnalyzer.COLON:
                     raise Exception(f'Ожидилось ключевое слово {CodeAnalyzer.COLON} . Строка {words[ind-1][1]}')
@@ -227,7 +231,7 @@ def getScenery(words, resPath):
                     while words[ind][0]!=CodeAnalyzer.BUTTONS_END:
                         if words[ind][2]==CodeAnalyzer.STRING:
                             buttons.append(Button(words[ind][0][1:len(words[ind][0])-1]))
-                            print(words[ind][0][1:len(words[ind][0])-1])
+                            # print(words[ind][0][1:len(words[ind][0])-1])
                             ind += 1                            
                             if words[ind][0]!=CodeAnalyzer.DOUBLE_DASH:
                                 raise Exception(f"Ожидалось ключевое слово {CodeAnalyzer.DOUBLE_DASH}. Строка {words[ind-1][1]}")
@@ -235,7 +239,7 @@ def getScenery(words, resPath):
                                 ind += 1
                                 if words[ind-1][1]!=words[ind][1]:
                                     raise Exception(f"Отсутствует действие у кнопки. Строка {words[ind-1][1]}")
-                            print(f'Действие: {words[ind][0]}')
+                            # print(f'Действие: {words[ind][0]}')
                             ind += 1
                     waitSomething.append(words[ind])
                     #if words[ind][2]==CodeAnalyzer.KEYWORD and words[ind][1]!=words[ind-1][1]:
@@ -267,11 +271,131 @@ def getScenery(words, resPath):
         else:
             ind += 1
             if ind>len(words)-1:
-                break        
-    for sc in scenes:
-        allMessages += sc.getSceneMessages()
-        
-    
-        
-    return allMessages
-           
+                break
+    print('=== СЦЕНЫ СОБРАНЫ ===')
+    print(scenes[0].trash)
+    transitions = get_transitions(scenes)
+    set_transitions(transitions)
+    print('=== ПЕРЕХОДЫ УСТАНОВЛЕНЫ. ЗАПУСКАЕМ БОТА... ===')
+    first_message = scenes[0].getSceneMessages()[0]
+    bot = bot.Bot(token, first_message)
+
+
+
+def find_scene_by_name(scenes, name):
+    for scene in scenes:
+        if scene.getName() == name:
+            return scene
+    return None
+
+
+def get_transitions(scenes):
+    transitions = []  # [(from_scene_name, requiered, next_scene_name, is_keyword)]
+    for scene in scenes:
+        if scene.trash:
+            # есть непроанализированные слова (для переходов)
+            if scene.trash[0][0] == CodeAnalyzer.WAIT_AUDIO or scene.trash[0][0] == CodeAnalyzer.WAIT_TEXT:
+                if len(scene.trash)<2:
+                    raise Exception(f'Блок {scene.trash[0][0]} не закрыт. Строка {scene.trash[0][1]}.')
+                end_idx = 0
+                for i in range(1, len(scene.trash)):
+                    if scene.trash[i][0] == CodeAnalyzer.WAIT_END and\
+                       scene.trash[i][2] == CodeAnalyzer.KEYWORD:
+                        end_idx = i
+                        break
+                if end_idx == 0:
+                    raise Exception(f'Блок {scene.trash[0][0]} не закрыт. Строка {scene.trash[0][1]}.')
+                content = scene.trash[1:end_idx]
+                if not content:
+                    raise Exception(f'Блок {scene.trash[0][0]} пуст. Строка {scene.trash[0][1]}.')
+                requiered = None
+                next_scene = None
+                is_keyword = None
+                for i in range(len(content)):
+                    if content[i][2] == CodeAnalyzer.STRING:
+                        if requiered is None:
+                            if is_keyword is None:
+                                is_keyword = False
+                            requiered = content[i][0]
+                        elif next_scene is None:
+                            if find_scene_by_name(scenes, content[i][2]) is None:
+                                raise Exception(f'Сцена {content[i][2]} не найдена. Строка {content[i][1]}.')
+                            next_scene = content[i][0]
+                        else:
+                            raise Exception(f'Ожидалось {CodeAnalyzer.DOUBLE_DASH}. Строка {content[i][1]}.')
+                    elif content[i][2] == CodeAnalyzer.KEYWORD:
+                        if content[i][0] == CodeAnalyzer.ASTERISK:
+                            if is_keyword is None and requiered is None:
+                                is_keyword == True
+                            else:
+                                raise Exception(f'Ключевое слово {CodeAnalyzer.ASTERISK} не на своём месте. Строка {content[i][1]}.')
+                        elif content[i][0] == CodeAnalyzer.DOUBLE_DASH:
+                            pass
+                        elif content[i][0] == CodeAnalyzer.ELSE:
+                            if requiered is None:
+                                requiered = Post.SEND_ELSE
+                            else:
+                                raise Exception(f'Ключевое слово {CodeAnalyzer.ELSE} не на своём месте. Строка {content[i][1]}.')
+                        else:
+                            raise Exception(f'Неожиданное ключевое слово {content[i][0]} в блоке {scene.trash[0][0]}. Строка {content[i][1]}.')
+                    if not (requiered is None or next_scene is None):
+                        transitions.append((scene.name, requiered, next_scene, is_keyword))
+            elif scene.trash[0][0] == CodeAnalyzer.BUTTONS:
+                if len(scene.trash)<4:
+                    raise Exception(f'Блок {scene.trash[0][0]} не закрыт. Строка {scene.trash[0][1]}.')
+                end_idx = 0
+                for i in range(1, len(scene.trash)):
+                    if scene.trash[i][0] == CodeAnalyzer.BUTTONS_END and\
+                       scene.trash[i][2] == CodeAnalyzer.KEYWORD:
+                        end_idx = i
+                        break
+                if end_idx == 0:
+                    raise Exception(f'Блок {scene.trash[0][0]} не закрыт. Строка {scene.trash[0][1]}.')
+                content = scene.trash[2:end_idx]
+                if not content:
+                    raise Exception(f'Блок {scene.trash[0][0]} пуст. Строка {scene.trash[0][1]}.')
+                requiered = None
+                next_scene = None
+                for i in range(len(content)):
+                    if content[i][2] == CodeAnalyzer.STRING:
+                        if requiered is None:
+                            requiered = content[i][0]
+                        elif next_scene is None:
+                            if find_scene_by_name(scenes, content[i][2]) is None:
+                                raise Exception(f'Сцена {content[i][2]} не найдена. Строка {content[i][1]}.')
+                            next_scene = content[i][0]
+                        else:
+                            raise Exception(f'Ожидалось {CodeAnalyzer.DOUBLE_DASH}. Строка {content[i][1]}.')
+                    elif content[i][2] == CodeAnalyzer.KEYWORD:
+                        if content[i][0] != CodeAnalyzer.DOUBLE_DASH:
+                            raise Exception(f'Неожиданное ключевое слово {content[i][0]} в блоке {scene.trash[0][0]}. Строка {content[i][1]}.')
+                    if not (requiered is None or next_scene is None):
+                        transitions.append((scene.name, requiered, next_scene, CodeAnalyzer.BUTTONS))
+            elif scene.trash[0][0] == CodeAnalyzer.TRANSITION:
+                if len(scene.trash)<1:
+                    raise Exception(f'Пустой переход. Строка {scene.trash[0][1]}.')
+                if scene.trash[1][2] != CodeAnalyzer.STRING:
+                    raise Exception(f'Ожидалось название сцены для перехода. Строка {scene.trash[0][1]}.')
+                if find_scene_by_name(scenes, scene.trash[1][0]) is None:
+                    raise Exception(f'Сцена {scene.trash[1][0]} не найдена. Строка {scene.trash[1][1]}.')
+                transitions.append((scene.name, Post.SEND_IMMEDIATELY, scene.trash[1][0]))
+    return transitions
+
+
+def set_transitions(scenes, transitions):
+    # устанавливаем безусловные переходы внутри сцены
+    for scene in scenes:
+        posts = scene.getSceneMessages()
+        stop = len(posts)-1
+        for i in range(stop):
+            posts[i].add_next(posts[i+1])
+    # устанавливаем условные переходы между сценами
+    for from_scene_name, requiered, next_scene_name, is_keyword in transitions:
+        from_post = find_scene_by_name(scenes, from_scene_name).getSceneMessages()[-1]
+        next_post = find_scene_by_name(scenes, next_scene_name).getSceneMessages()[0]
+        if is_keyword != CodeAnalyzer.BUTTONS:
+            from_post.add_next(next_post, requiered, is_keyword)
+        else:
+            for button in from_post.content:
+                if button.text == requiered:
+                    from_post.add_next(next_post, button)

@@ -174,5 +174,5 @@ class Bot:
                 self.user_table[i] = (user_id, new_post, sent.id)
                 break
 
-
-bot = Bot(TOKEN, get_sample_script())
+if __name__ == '__main__':
+    bot = Bot(TOKEN, get_sample_script())
