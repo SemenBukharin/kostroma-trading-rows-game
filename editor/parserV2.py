@@ -146,6 +146,18 @@ def getScenery(words, resPath):
                     raise Exception(f'Ожидилась строка в кавычках после ключевого слова {CodeAnalyzer.VIDEO}. Строка {words[ind-1][1]}')
                 elif not os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
                     raise Exception(f'Файл не существует {words[ind][0][1:len(words[ind][0])-1]}. Строка {words[ind-1][1]}')
+        elif words[ind][0]==CodeAnalyzer.ROUND and words[ind][2]==CodeAnalyzer.KEYWORD:
+             ind += 1
+             if os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
+                 el = RoundPost(resPath+words[ind][0][1:len(words[ind][0])-1])
+                 elements.append(el)
+                 print("Круг "+words[ind][0][1:len(words[ind][0])-1])
+                 ind += 1
+             else:
+                 if words[ind][2]==CodeAnalyzer.KEYWORD:
+                     raise Exception(f'Ожидилась строка в кавычках после ключевого слова {CodeAnalyzer.ROUND}. Строка {words[ind-1][1]}')
+                 elif not os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
+                     raise Exception(f'Файл не существует {words[ind][0][1:len(words[ind][0])-1]}. Строка {words[ind-1][1]}')
         elif words[ind][0]==CodeAnalyzer.GIF and words[ind][2]==CodeAnalyzer.KEYWORD:
             ind += 1
             if os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
