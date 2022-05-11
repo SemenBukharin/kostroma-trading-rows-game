@@ -1,6 +1,6 @@
 import re
 
-class CodeAnalyzer():
+class CodeAnalyzer:
     # типы слов
     COMMENT = 0  # комментарий
     KEYWORD = 1  # ключевое слово
@@ -17,6 +17,7 @@ class CodeAnalyzer():
     VOICE = 'гс'
     AUDIO = 'аудио'
     VIDEO = 'видео'
+    ROUND = 'кругл'
     GIF = 'гиф'
     DOC = 'документ'
     STICKER = 'стикер'
@@ -30,19 +31,20 @@ class CodeAnalyzer():
     EXIT = 'выход'
     BUTTONS = 'кнопки'
     BUTTONS_END = 'хватитКнопок'
+    TRANSITION = 'переход'
     ASTERISK = '*'
     COLON = ':'
     DOUBLE_DASH = '--'
     EXCLAM = '!'
     QUOTE = '"'
     # CARRIAGE_RETURN = '\r'
-    NEWLINE = '\n'
+    NEWLINE = '\r\n'
     SPACE = ' '
 
     # ключевые слова
     KWORDS = [BOT, BOT_END, SCENE, SCENE_END, TEXT, PHOTO, VOICE, AUDIO, VIDEO, GIF, DOC, STICKER,
               GROUP, GROUP_END, WAIT_AUDIO, WAIT_TEXT, WAIT_END, BACK, ELSE, EXIT, BUTTONS, BUTTONS_END,
-              ASTERISK, COLON, DOUBLE_DASH]
+              ASTERISK, COLON, DOUBLE_DASH, ROUND, TRANSITION]
 
     # показывает количество пробелов для каждого отступа
     INDENT_SPACE_COUNT = 4
@@ -96,7 +98,6 @@ class CodeAnalyzer():
                 result.append((word, line_number, word_type))
         return result
 
-    # TODO: разные виды конца строки
 
     def get_words(self, code):
         # # заменяем таб на 4 пробела
@@ -163,5 +164,6 @@ class CodeAnalyzer():
         if current_type == self.STRING or current_type == self.COMMENT:
             analyzed.append((current_word, line_number-current_word.count(self.NEWLINE), pos, current_type))
 
-        completion = self.autocomplete(code, analyzed, symbol, line_number)
+        # completion = self.autocomplete(code, analyzed, symbol, line_number)
+        completion = ''
         return analyzed, completion

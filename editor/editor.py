@@ -2,7 +2,7 @@ import wx  # pip install -U --pre -f https://wxpython.org/Phoenix/snapshot-build
 import wx.stc
 import codecs
 import code_analyzer
-import parserV2
+
 
 class Editor(wx.stc.StyledTextCtrl):
     """Класс текстового поля редактора."""
@@ -10,8 +10,11 @@ class Editor(wx.stc.StyledTextCtrl):
             pos = wx.DefaultPosition, \
             size = wx.DefaultSize,\
             style = 0,\
-            name = 'editor'):
+            name = 'editor',
+            frame = None):
         wx.stc.StyledTextCtrl.__init__ (self, parent, id, pos, size, style, name)
+
+        self.frame = frame
 
         # задаём боковую панель с номерами строк
         # TODO: расширение панели
@@ -75,52 +78,6 @@ class Editor(wx.stc.StyledTextCtrl):
         # получим код нажатой клавиши
         key_val = event.GetKey()
 
-         # нас не интересуют нажатые клавиши с кодом больше 127
-        # if key_val>127:
-        #     return
-
-        # получим символ нажатой клавиши
-        key = chr(key_val)
-
-        print([key])
-
-        text = self.GetText()
-
-        if key == '\t':
-            pos = self.GetCurrentPos()-1
-            bytepos = self.calcBytePos(text, pos)  # находим позицию начала слова в байтах
-            text_byte_len = self.calcByteLen(key)  # вычисляем длину слова в байтах
-            self.Replace(bytepos, bytepos+text_byte_len, 
-                         self.code_analyzer.SPACE*self.code_analyzer.INDENT_SPACE_COUNT)
-
-        # completion = ''
-        # # добавление отступа при переходе на новую строку
-        # if last_symbol == self.NEWLINE and last_line_number:
-        #     # ищем последнюю введённую строку
-        #     newline_start_idxs = [_.start() for _ in re.finditer(self.NEWLINE, code)]
-        #     line_end = newline_start_idxs[-1]+len(self.NEWLINE)
-        #     if len(newline_start_idxs)>1:
-        #         line_start = newline_start_idxs[-2]+len(self.NEWLINE)
-        #     else:
-        #         line_start = 0
-        #     last_line = code[line_start:line_end+1]
-        #     # считаем количество пробелов в начале последней строки
-        #     space_count = 0
-        #     for symbol in last_line:
-        #         if symbol == self.SPACE:
-        #             space_count += 1
-        #         else:
-        #             break
-        #     # добавляем на следующую строку такое же количество пробелов
-        #     if space_count % self.INDENT_SPACE_COUNT == 0:
-        #         completion += self.SPACE * space_count
-        #     if analyzed:
-        #         word, line_number, _, word_type = analyzed[-1]
-        #         if word_type == self.KEYWORD and word == self.COLON and line_number == last_line_number-1:
-        #             # если пользователь ввёл двоеточие и нажал на Enter,
-        #             # отступ на следующей строке увеличивается
-        #             completion += self.SPACE * self.INDENT_SPACE_COUNT
-
 
     def onPosChange (self, event):
         # Получим текущую позицию каретки в байтах
@@ -153,7 +110,8 @@ class Editor(wx.stc.StyledTextCtrl):
             self.AddText(completion)
         # self.SetCurrentPos(len(completed_code))
 
-        for word, line_number, last_pos, word_type in analyzed:
+        scene_idxs = []
+        for i, (word, line_number, last_pos, word_type) in enumerate(analyzed):
             pos = last_pos-len(word)
             bytepos = self.calcBytePos(text, pos)  # находим начальную позицию в байтах
             text_byte_len = self.calcByteLen(word)  # вычисляем длину слова в байтах
@@ -171,136 +129,3 @@ class Editor(wx.stc.StyledTextCtrl):
                     self.SetStyling(text_byte_len, self.style_blue)
 
         self.analyzed = analyzed
-
-
-class MainWindow(wx.Frame):
-    """Класс окна редактора."""
-    def __init__(self, parent, title):
-        super().__init__(parent, title=title, style = wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE)
-        # TODO: иконка
-        # TODO: отступы меню
-        # иконки меню
-        self.createMenuBar()
-        self.createSideBar()
-
-        self.main_spltr = wx.SplitterWindow(self, wx.ID_ANY, style=wx.SP_LIVE_UPDATE)
-
-        self.sidebar_p = wx.Panel(self.main_spltr)
-        self.edit_p = wx.Panel(self.main_spltr)
-
-        self.main_spltr.SplitVertically(self.sidebar_p, self.edit_p)
-        self.main_spltr.SetMinimumPaneSize(200)
-
-        self.scenes_p = wx.Panel(self.sidebar_p)
-        self.scenes_st = wx.StaticText(self.scenes_p, label='Сцены')
-        self.scenes_b = wx.Button(self.scenes_p, label='+', style=wx.BU_EXACTFIT)
-        self.scenes_lb = wx.ListBox(self.scenes_p, choices=self.get_scenes_names())
-        self.scenes_gbs = wx.GridBagSizer(2, 3)
-        self.scenes_gbs.Add(self.scenes_st, pos=(0, 0))
-        self.scenes_gbs.Add(self.scenes_b, pos=(0, 2))
-        self.scenes_gbs.Add(self.scenes_lb, pos=(1, 0), span=(1, 3), flag=wx.EXPAND | wx.UP, border=5)
-        self.scenes_gbs.AddGrowableCol(1)
-        self.scenes_gbs.AddGrowableRow(1)
-        self.scenes_p.SetSizer(self.scenes_gbs)
-
-        self.res_p = wx.Panel(self.sidebar_p)
-        self.res_st = wx.StaticText(self.res_p, label='Ресурсы')
-        self.res_b = wx.Button(self.res_p, label='+', style=wx.BU_EXACTFIT)
-        self.res_lb = wx.ListBox(self.res_p, choices=self.get_resources_names())
-        self.res_gbs = wx.GridBagSizer(2, 3)
-        self.res_gbs.Add(self.res_st, pos=(0, 0))
-        self.res_gbs.Add(self.res_b, pos=(0, 2))
-        self.res_gbs.Add(self.res_lb, pos=(1, 0), span=(1, 3), flag=wx.EXPAND | wx.UP, border=5)
-        self.res_gbs.AddGrowableCol(1)
-        self.res_gbs.AddGrowableRow(1)
-        self.res_p.SetSizer(self.res_gbs)
-
-        self.sidebar_bs = wx.BoxSizer(wx.VERTICAL)
-        self.sidebar_bs.Add(self.scenes_p, wx.ID_ANY, flag=wx.EXPAND | wx.ALL, border=5)
-        self.sidebar_bs.Add(self.res_p, wx.ID_ANY, flag=wx.EXPAND | wx.ALL, border=5)
-        self.sidebar_p.SetSizer(self.sidebar_bs)
-
-        self.editor = Editor(self.edit_p)
-        self.edit_bs = wx.BoxSizer()
-        self.edit_bs.Add(self.editor, wx.ID_ANY, flag=wx.EXPAND)
-        self.edit_p.SetSizer(self.edit_bs)
-
-
-    def createMenuBar(self):
-        self.menubar = wx.MenuBar()
-
-        # TODO: свои ID
-        self.project_menu = wx.Menu()  # вкладка "Проект"
-        self.create_item = self.project_menu.Append(wx.ID_ANY, 'Создать\tCtrl+N', 'Создать новый пустой проект')
-        self.open_item = self.project_menu.Append(wx.ID_ANY, 'Открыть...\tCtrl+O', 'Открыть существующий проект')
-        self.save_item = self.project_menu.Append(wx.ID_ANY, 'Сохранить...\tCtrl+S', 'Сохранить изменения в текущем проекте')
-
-        self.bot_menu = wx.Menu()  # подменю "Бот"
-        self.start_item = self.bot_menu.Append(wx.ID_ANY, 'Запуск...\tCtrl+K', 'Запустить бота')
-        self.stop_item = self.bot_menu.Append(wx.ID_ANY, 'Стоп\tCtrl+P', 'Остановить бота')
-
-        self.about_menu = wx.Menu()  # вкладка "О программе"
-        self.doc_item = self.about_menu.Append(wx.ID_ANY, 'Спецификация языка\tCtrl+D', 'Просмотреть команды языка разметки сценариев')
-        self.help_item = self.about_menu.Append(wx.ID_ANY, 'Руководство пользователя\tCtrl+H', 'Посмотреть руководство пользователя')
-
-        self.menubar.Append(self.project_menu, '&Проект')
-        self.menubar.Append(self.bot_menu, '&Бот')
-        self.menubar.Append(self.about_menu, '&Помощь')
-
-        self.SetMenuBar(self.menubar)
-
-        self.Bind(wx.EVT_MENU, self.onCreateClick, self.create_item)
-        self.Bind(wx.EVT_MENU, self.onOpenClick, self.open_item)
-        self.Bind(wx.EVT_MENU, self.onSaveClick, self.save_item)
-        self.Bind(wx.EVT_MENU, self.onStartClick, self.start_item)
-        self.Bind(wx.EVT_MENU, self.onStopClick, self.stop_item)
-        self.Bind(wx.EVT_MENU, self.onDocClick, self.doc_item)
-        self.Bind(wx.EVT_MENU, self.onHelpClick, self.help_item)
-
-    def createSideBar(self):
-        pass
-
-    def get_scenes_names(self):
-        return ['сцена 1', 'сцена 2', 'сцена 3']*10  # TODO: реализовать
-
-    def get_resources_names(self):
-        return ['pic.jpg', 'video.mp4', 'voice.ogg']  # TODO: реализовать
-
-    def onCreateClick(self, event):
-        pass
-
-    def onOpenClick(self, event):
-        pass
-
-    def onSaveClick(self, event):
-        pass
-
-    def onStartClick(self, event):
-        self.code_analyzer = code_analyzer.CodeAnalyzer()
-        if self.editor.analyzed:
-            words_for_parsing = self.code_analyzer.get_words_for_parsing(self.editor.analyzed)
-            parserV2.getScenery(words_for_parsing)
-        else:
-            words_for_parsing = []
-        print(words_for_parsing)        
-        pass
-
-    def onStopClick(self, event):
-        pass
-
-    def onDocClick(self, event):
-        pass
-
-    def onHelpClick(self, event):
-        pass
-    
-    def getWordsForParsing(self):
-        words_for_parsing = self.code_analyzer.get_words_for_parsing(self.editor.analyzed)
-        return words_for_parsing
-
-app = wx.App()
-
-frame = MainWindow(None, 'Редактор Telegram-ботов')
-frame.Show()
-
-app.MainLoop()
