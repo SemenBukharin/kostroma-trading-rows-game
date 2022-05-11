@@ -8,6 +8,7 @@ import morpheme
 class Post(ABC):
     """Класс поста."""
     SEND_IMMEDIATELY = 0  # константа: отправить следующий пост сразу за текущим
+    SEND_ELSE = 1  # константа: отправить следующий пост, если условие не выполнилось
     def __init__(self, content):
         """Создать пост с указанным контентом.
 
@@ -39,6 +40,9 @@ class Post(ABC):
                 # ответа от игрока не получено - ничего не возвращаем
                 return None
             if self.morph.check(received, requiered_callback, is_keyword):
+                return next_post
+            if requiered_callback == self.SEND_ELSE:
+                # следующий пост нужно отправить, если ни одно условие не выполнилось
                 return next_post
         self.transitions.append(transition)
 
