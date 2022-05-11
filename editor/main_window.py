@@ -227,7 +227,7 @@ class MainWindow(wx.Frame):
         self.code_analyzer = code_analyzer.CodeAnalyzer()
         if self.editor.analyzed:
             words_for_parsing = self.code_analyzer.get_words_for_parsing(self.editor.analyzed)
-            parserV2.getScenery(words_for_parsing)
+            parserV2.getScenery(words_for_parsing, self.project.path+"/res/")
         else:
             words_for_parsing = []
         print(words_for_parsing)
