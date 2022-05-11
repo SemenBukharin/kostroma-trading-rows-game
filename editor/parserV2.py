@@ -6,9 +6,10 @@ import os.path
 class Scene:
     """Класс сцены Telegram-бота"""
 
-    def __init__(self, name, messages):
+    def __init__(self, name, messages, waitingElements):
         self.sceneMessages = messages
         self.name = name
+        self.trash = waitingElements
 
     def getName(self):
         return self.name
@@ -16,7 +17,7 @@ class Scene:
     def getSceneMessages(self):
         return self.sceneMessages
 
-def getScenery(words):    
+def getScenery(words, resPath):    
     elements = []
     token = ""
     text = ""
@@ -25,6 +26,8 @@ def getScenery(words):
     currentSceneName = ""
     scenes = []
     currentScene = None
+    
+    waitSomething = []
 
     def getSceneByName(sceneName):
         for sc in scenes:
@@ -65,8 +68,10 @@ def getScenery(words):
             else:
                  raise Exception(f'Ожидилась строка в кавычках после ключевого слова {CodeAnalyzer.SCENE}. Строка {words[ind-1][1]}')
         elif words[ind][0]==CodeAnalyzer.SCENE_END and words[ind][2]==CodeAnalyzer.KEYWORD:
-            scenes.append(Scene(currentSceneName, elements))
+            scenes.append(Scene(currentSceneName, elements, waitSomething))
             elements = []
+            print (waitSomething)
+            waitSomething = []
             currentName = ""
             ind += 1
         elif words[ind][0]==CodeAnalyzer.TEXT and words[ind][2]==CodeAnalyzer.KEYWORD:
@@ -81,14 +86,14 @@ def getScenery(words):
                        raise Exception(f'В текущей группе уже есть текст! Строка {words[ind-1][1]}')
                 else:
                    elements.append(el)
-                print(words[ind][0][1:len(words[ind][0])-1])
+                print("текст "+words[ind][0][1:len(words[ind][0])-1])
                 ind += 1
             else:
                  raise Exception(f'Ожидилась строка(и) в кавычках после ключевого слова {CodeAnalyzer.TEXT}. Строка {words[ind-1][1]}')
         elif words[ind][0]==CodeAnalyzer.PHOTO and words[ind][2]==CodeAnalyzer.KEYWORD:
             ind += 1
-            if os.path.exists(words[ind][0][1:len(words[ind][0])-1]):
-                el = ImagePost(words[ind][0][1:len(words[ind][0])-1])
+            if os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
+                el = ImagePost(resPath+words[ind][0][1:len(words[ind][0])-1])
                 if groupMessageFlag:
                     groupMessage.append(el)
                 else:
@@ -98,23 +103,23 @@ def getScenery(words):
             else:
                 if words[ind][2]==CodeAnalyzer.KEYWORD:
                     raise Exception(f'Ожидилась строка в кавычках после ключевого слова {CodeAnalyzer.PHOTO}. Строка {words[ind-1][1]}')
-                elif not os.path.exists(words[ind][0][1:len(words[ind][0])-1]):
+                elif not os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
                     raise Exception(f'Файл не существует {words[ind][0][1:len(words[ind][0])-1]}. Строка {words[ind-1][1]}')
         elif words[ind][0]==CodeAnalyzer.VOICE and words[ind][2]==CodeAnalyzer.KEYWORD:
             ind += 1
-            if os.path.exists(words[ind][0][1:len(words[ind][0])-1]):
-                elements.append(VoicePost(words[ind][0][1:len(words[ind][0])-1]))
+            if os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
+                elements.append(VoicePost(resPath+words[ind][0][1:len(words[ind][0])-1]))
                 print(words[ind][0][1:len(words[ind][0])-1])
                 ind += 1
             else:
                 if words[ind][2]==CodeAnalyzer.KEYWORD:
                     raise Exception(f'Ожидилась строка в кавычках после ключевого слова {CodeAnalyzer.VOICE}. Строка {words[ind-1][1]}')
-                elif not os.path.exists(words[ind][0][1:len(words[ind][0])-1]):
+                elif not os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
                     raise Exception(f'Файл не существует {words[ind][0][1:len(words[ind][0])-1]}. Строка {words[ind-1][1]}')
         elif words[ind][0]==CodeAnalyzer.AUDIO and words[ind][2]==CodeAnalyzer.KEYWORD:
             ind += 1
-            if os.path.exists(words[ind][0][1:len(words[ind][0])-1]):
-                el = AudioPost(words[ind][0][1:len(words[ind][0])-1])
+            if os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
+                el = AudioPost(resPath+words[ind][0][1:len(words[ind][0])-1])
                 if groupMessageFlag:
                     groupMessage.append(el)
                 else:
@@ -124,12 +129,12 @@ def getScenery(words):
             else:
                 if words[ind][2]==CodeAnalyzer.KEYWORD:
                     raise Exception(f'Ожидилась строка в кавычках после ключевого слова {CodeAnalyzer.AUDIO}. Строка {words[ind-1][1]}')
-                elif not os.path.exists(words[ind][0][1:len(words[ind][0])-1]):
+                elif not os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
                     raise Exception(f'Файл не существует {words[ind][0][1:len(words[ind][0])-1]}. Строка {words[ind-1][1]}')
         elif words[ind][0]==CodeAnalyzer.VIDEO and words[ind][2]==CodeAnalyzer.KEYWORD:
             ind += 1
-            if os.path.exists(words[ind][0][1:len(words[ind][0])-1]):
-                el = VideoPost(words[ind][0][1:len(words[ind][0])-1])
+            if os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
+                el = VideoPost(resPath+words[ind][0][1:len(words[ind][0])-1])
                 if groupMessageFlag:
                     groupMessage.append(el)
                 else:
@@ -139,23 +144,23 @@ def getScenery(words):
             else:
                 if words[ind][2]==CodeAnalyzer.KEYWORD:
                     raise Exception(f'Ожидилась строка в кавычках после ключевого слова {CodeAnalyzer.VIDEO}. Строка {words[ind-1][1]}')
-                elif not os.path.exists(words[ind][0][1:len(words[ind][0])-1]):
+                elif not os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
                     raise Exception(f'Файл не существует {words[ind][0][1:len(words[ind][0])-1]}. Строка {words[ind-1][1]}')
         elif words[ind][0]==CodeAnalyzer.GIF and words[ind][2]==CodeAnalyzer.KEYWORD:
             ind += 1
-            if os.path.exists(words[ind][0][1:len(words[ind][0])-1]):
-                elements.append(GifPost(words[ind][0][1:len(words[ind][0])-1]))
+            if os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
+                elements.append(GifPost(resPath+words[ind][0][1:len(words[ind][0])-1]))
                 print(words[ind][0][1:len(words[ind][0])-1])
                 ind += 1
             else:
                 if words[ind][2]==CodeAnalyzer.KEYWORD:
                     raise Exception(f'Ожидилась строка в кавычках после ключевого слова {CodeAnalyzer.GIF}. Строка {words[ind-1][1]}')
-                elif not os.path.exists(words[ind][0][1:len(words[ind][0])-1]):
+                elif not os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
                     raise Exception(f'Файл не существует {words[ind][0][1:len(words[ind][0])-1]}. Строка {words[ind-1][1]}')
         elif words[ind][0]==CodeAnalyzer.DOC and words[ind][2]==CodeAnalyzer.KEYWORD:
             ind += 1
-            if os.path.exists(words[ind][0][1:len(words[ind][0])-1]):
-                el = DocPost(words[ind][0][1:len(words[ind][0])-1])
+            if os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
+                el = DocPost(resPath+words[ind][0][1:len(words[ind][0])-1])
                 if groupMessageFlag:
                     groupMessage.append(el)
                 else:
@@ -165,18 +170,18 @@ def getScenery(words):
             else:
                 if words[ind][2]==CodeAnalyzer.KEYWORD:
                     raise Exception(f'Ожидилась строка в кавычках после ключевого слова {CodeAnalyzer.DOC}. Строка {words[ind-1][1]}')
-                elif not os.path.exists(words[ind][0][1:len(words[ind][0])-1]):
+                elif not os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
                     raise Exception(f'Файл не существует {words[ind][0][1:len(words[ind][0])-1]}. Строка {words[ind-1][1]}')
         elif words[ind][0]==CodeAnalyzer.STICKER and words[ind][2]==CodeAnalyzer.KEYWORD:
             ind += 1
-            if os.path.exists(words[ind][0][1:len(words[ind][0])-1]):
-                elements.append(StickerPost(words[ind][0][1:len(words[ind][0])-1]))
+            if os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
+                elements.append(StickerPost(resPath+words[ind][0][1:len(words[ind][0])-1]))
                 print(words[ind][0][1:len(words[ind][0])-1])
                 ind += 1
             else:
                 if words[ind][2]==CodeAnalyzer.KEYWORD:
                     raise Exception(f'Ожидилась строка в кавычках после ключевого слова {CodeAnalyzer.STICKER}. Строка {words[ind-1][1]}')
-                elif not os.path.exists(words[ind][0][1:len(words[ind][0])-1]):
+                elif not os.path.exists(resPath+words[ind][0][1:len(words[ind][0])-1]):
                     raise Exception(f'Файл не существует {words[ind][0][1:len(words[ind][0])-1]}. Строка {words[ind-1][1]}')
         elif words[ind][0]==CodeAnalyzer.GROUP and words[ind][2]==CodeAnalyzer.KEYWORD:
             ind += 1
@@ -194,6 +199,7 @@ def getScenery(words):
             groupMessage = []
         elif words[ind][0]==CodeAnalyzer.BUTTONS and words[ind][2]==CodeAnalyzer.KEYWORD:
             buttons = []
+            waitSomething.append(words[ind])
             ind += 1
             if words[ind][2]==CodeAnalyzer.STRING:
                 buttonsDescription = words[ind][0][1:len(words[ind][0])-1]
@@ -219,17 +225,41 @@ def getScenery(words):
                                     raise Exception(f"Отсутствует действие у кнопки. Строка {words[ind-1][1]}")
                             print(f'Действие: {words[ind][0]}')
                             ind += 1
-                    if words[ind][2]==CodeAnalyzer.KEYWORD and words[ind][1]!=words[ind-1][1]:
-                        raise Exception(f'Ожидилось ключевое слово {CodeAnalyzer.BUTTONS_END}. Строка {words[ind][1]}')
-                    print(f'Действие: {words[ind-1][0]}')
+                    waitSomething.append(words[ind])
+                    #if words[ind][2]==CodeAnalyzer.KEYWORD and words[ind][1]!=words[ind-1][1]:
+                    #   raise Exception(f'Ожидилось ключевое слово {CodeAnalyzer.BUTTONS_END}. Строка {words[ind][1]}')
+                    #print(f'Действие: {words[ind-1][0]}')                    
+                    elements.append(ButtonsPost(buttonsDescription, buttons))
             else:
                  raise Exception(f'Ожидилась строка(и) в кавычках после ключевого слова {CodeAnalyzer.BUTTONS}. Строка {words[ind-1][1]}')
+        elif words[ind][0]==CodeAnalyzer.WAIT_AUDIO and words[ind][2]==CodeAnalyzer.KEYWORD:
+            waitSomething.append(words[ind])
+            ind += 1
+            while words[ind][0]!=CodeAnalyzer.WAIT_END:
+                waitSomething.append(words[ind])
+                ind += 1
+            waitSomething.append(words[ind])
+        elif words[ind][0]==CodeAnalyzer.WAIT_TEXT and words[ind][2]==CodeAnalyzer.KEYWORD:
+            waitSomething.append(words[ind])
+            ind += 1            
+            while words[ind][0]!=CodeAnalyzer.WAIT_END:
+                waitSomething.append(words[ind])
+                ind += 1
+            waitSomething.append(words[ind])
+        elif words[ind][0]==CodeAnalyzer.TRANSITION and words[ind][2]==CodeAnalyzer.KEYWORD:
+            waitSomething.append(words[ind])
+            ind += 1
+            if words[ind][2]==CodeAnalyzer.KEYWORD:
+                raise Exception(f'Ожидилась строка в кавычках после ключевого слова {CodeAnalyzer.PHOTO}. Строка {words[ind-1][1]}')
+            waitSomething.append(words[ind])                    
         else:
             ind += 1
             if ind>len(words)-1:
-                break
+                break        
     for sc in scenes:
         allMessages += sc.getSceneMessages()
+        
+    
         
     return allMessages
            
